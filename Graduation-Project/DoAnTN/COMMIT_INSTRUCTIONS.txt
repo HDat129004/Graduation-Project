@@ -1,0 +1,263 @@
+✅ GITHUB COMMIT - COMPLETE GUIDE
+
+================================================================================
+                         YOUR GITHUB REPOSITORY
+================================================================================
+
+URL: https://github.com/HDat129004/Graduation-Project.git
+
+================================================================================
+                      3 WAYS TO COMMIT (PICK ONE)
+================================================================================
+
+WAY 1: EASIEST - Batch Script (Windows) ⭐ RECOMMENDED
+────────────────────────────────────────────────────
+Step 1: Double-click this file
+        → commit_to_github.bat
+
+Step 2: Wait for completion
+
+Step 3: Done! Your project is on GitHub ✅
+
+
+WAY 2: Shell Script (Linux/Mac)
+───────────────────────────────
+Step 1: Open terminal
+
+Step 2: Run this command
+        → bash commit_to_github.sh
+
+Step 3: Done! Your project is on GitHub ✅
+
+
+WAY 3: Manual (Command Line)
+────────────────────────────
+Step 1: Initialize git
+        git init
+
+Step 2: Add all files
+        git add .
+
+Step 3: Commit with message
+        git commit -m "Initial commit: DoAnTN project"
+
+Step 4: Add remote (if not done)
+        git remote add origin https://github.com/HDat129004/Graduation-Project.git
+
+Step 5: Set main branch
+        git branch -M main
+
+Step 6: Push to GitHub
+        git push -u origin main
+
+Step 7: Done! Your project is on GitHub ✅
+
+
+================================================================================
+                         QUICK CHECKLIST
+================================================================================
+
+Before Committing:
+  ☑ All source code files ready
+  ☑ All tests passing
+  ☑ All documentation complete
+  ☑ README.md updated
+  ☑ .gitignore configured
+
+During Commit:
+  ☑ Have GitHub credentials ready
+  ☑ Internet connection active
+  ☑ Run script from project directory
+
+After Commit:
+  ☑ Go to GitHub repository
+  ☑ Verify all files are there
+  ☑ Share link with advisor
+
+
+================================================================================
+                       WHAT GETS COMMITTED
+================================================================================
+
+SOURCE CODE (10+ files):
+  ✅ App.java
+  ✅ AnalyzerService.java
+  ✅ TestGenerator.java
+  ✅ JavaPoetTestGenerator.java
+  ✅ Model classes
+  ✅ Analyzer classes
+  ✅ All other Java files
+
+TESTS (3+ files):
+  ✅ TestGenerationTest.java
+  ✅ MethodInspectorTest.java
+  ✅ AppTest.java
+
+CONFIGURATION:
+  ✅ pom.xml (Maven)
+  ✅ .gitignore
+
+DOCUMENTATION (15+ files):
+  ✅ README.md
+  ✅ ANSWER.md
+  ✅ QUICK_START.md
+  ✅ All guides and verification files
+
+SCRIPTS:
+  ✅ run_test_generation.bat
+  ✅ commit_to_github.bat
+  ✅ And other utility scripts
+
+NOT COMMITTED (Ignored):
+  ❌ target/ directory
+  ❌ .idea/ directory
+  ❌ .class files
+  ❌ Temporary files
+
+
+================================================================================
+                      AUTHENTICATION (If Asked)
+================================================================================
+
+When Git asks for credentials:
+
+USERNAME: Your GitHub username
+PASSWORD: Your GitHub personal access token
+
+HOW TO GET TOKEN:
+  1. Go to: https://github.com/settings/tokens
+  2. Click: "Generate new token"
+  3. Select: "repo" scope
+  4. Copy: The generated token
+  5. Paste: Token as password when prompted
+
+Alternative: Use your GitHub password
+
+
+================================================================================
+                         COMMIT PROGRESS
+================================================================================
+
+What the script does:
+
+  [1/5] Initializing git repository...
+        → Creates .git folder
+
+  [2/5] Adding all files...
+        → Stages all changes
+
+  [3/5] Committing changes...
+        → Commits with descriptive message
+
+  [4/5] Setting up remote repository...
+        → Connects to GitHub
+
+  [5/5] Pushing to GitHub...
+        → Uploads files to GitHub
+
+  ✅ Successfully pushed to GitHub!
+     → Your project is now on GitHub
+
+
+================================================================================
+                      AFTER SUCCESSFUL COMMIT
+================================================================================
+
+YOU CAN NOW:
+  ✅ View your project on GitHub
+  ✅ Share the link with others
+  ✅ Clone the project on another computer
+  ✅ Invite collaborators
+  ✅ Track changes with git history
+  ✅ Submit link to your advisor
+
+REPOSITORY LINK:
+  https://github.com/HDat129004/Graduation-Project
+
+CLONE COMMAND:
+  git clone https://github.com/HDat129004/Graduation-Project.git
+
+
+================================================================================
+                         QUICK REFERENCE
+================================================================================
+
+GitHub Repository: https://github.com/HDat129004/Graduation-Project
+Commit Script (Windows): commit_to_github.bat
+Commit Script (Linux): commit_to_github.sh
+
+Full Guide: COMMIT_GUIDE.md
+Quick Guide: GITHUB_COMMIT_QUICK_GUIDE.md
+Status Verification: See next section
+
+
+================================================================================
+                       TROUBLESHOOTING
+================================================================================
+
+ERROR: "fatal: not a git repository"
+  → Make sure you're in the project directory
+     cd C:\Users\Admin\Desktop\DATN\DoAnTN
+
+ERROR: "Authentication failed"
+  → Use GitHub token instead of password
+     Get token from: https://github.com/settings/tokens
+
+ERROR: "remote origin already exists"
+  → Update the remote URL
+     git remote set-url origin https://github.com/HDat129004/Graduation-Project.git
+
+ERROR: "could not read Username"
+  → Configure git with your info
+     git config --global user.name "Your Name"
+     git config --global user.email "your@email.com"
+
+For more help, see: COMMIT_GUIDE.md
+
+
+================================================================================
+                         ESTIMATED TIME
+================================================================================
+
+Preparation: Already done! ✅
+Commit process: 2-3 minutes
+Verification: 1-2 minutes
+
+Total: ~5 minutes
+
+
+================================================================================
+                         START COMMITTING NOW!
+================================================================================
+
+👉 WINDOWS USERS:
+   1. Find: commit_to_github.bat
+   2. Double-click it
+   3. Wait for completion
+
+👉 LINUX/MAC USERS:
+   1. Open terminal
+   2. Run: bash commit_to_github.sh
+   3. Wait for completion
+
+👉 MANUAL USERS:
+   1. See "WAY 3: Manual" above
+   2. Run each command
+   3. Wait for completion
+
+Done! Your project is on GitHub! 🎉
+
+================================================================================
+                              STATUS
+================================================================================
+
+Repository: https://github.com/HDat129004/Graduation-Project
+Status: Ready to Commit
+Files: 30+ files ready
+Documentation: Complete
+Tests: All passing
+
+You're all set! Commit now! ✅
+
+================================================================================
+

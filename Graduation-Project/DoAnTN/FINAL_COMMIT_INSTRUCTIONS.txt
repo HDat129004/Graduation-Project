@@ -1,0 +1,300 @@
+✅ COMMIT TO GITHUB - FINAL INSTRUCTIONS
+
+================================================================================
+                              YOUR TASK
+================================================================================
+
+Commit DoAnTN project to GitHub at:
+  https://github.com/HDat129004/Graduation-Project.git
+
+================================================================================
+                           QUICK START
+================================================================================
+
+👉 WINDOWS USERS - EASIEST WAY:
+───────────────────────────────
+   1. Find file: commit_to_github.bat
+   2. Double-click it
+   3. Answer prompts (may ask for GitHub password/token)
+   4. Wait for "Successfully pushed to GitHub!" message
+   5. Done! ✅
+
+👉 LINUX/MAC USERS:
+──────────────────
+   1. Open terminal
+   2. Run: bash commit_to_github.sh
+   3. Answer prompts (may ask for GitHub password/token)
+   4. Wait for completion message
+   5. Done! ✅
+
+👉 MANUAL (All Platforms):
+──────────────────────────
+   cd C:\Users\Admin\Desktop\DATN\DoAnTN
+   git init
+   git add .
+   git commit -m "Initial commit: DoAnTN - Automatic Unit Test Generator for Java"
+   git remote add origin https://github.com/HDat129004/Graduation-Project.git
+   git branch -M main
+   git push -u origin main
+
+
+================================================================================
+                        WHAT GETS COMMITTED
+================================================================================
+
+✅ Source Code (10+ Java files):
+   • App.java (CLI Tool)
+   • AnalyzerService.java (Code Analysis)
+   • TestGenerator.java (Test Generation)
+   • JavaPoetTestGenerator.java (JUnit Generation)
+   • ClassModel.java, MethodModel.java, ParameterModel.java
+   • All other Java implementation files
+
+✅ Tests (3+ Test files):
+   • TestGenerationTest.java
+   • MethodInspectorTest.java
+   • AppTest.java
+
+✅ Documentation (15+ files):
+   • README.md
+   • All guides (QUICK_START.md, etc.)
+   • All verification documents
+   • This file and other guides
+
+✅ Configuration:
+   • pom.xml (Maven configuration)
+   • .gitignore (Ignore rules)
+
+✅ Scripts:
+   • run_test_generation.bat
+   • commit_to_github.bat & .sh
+   • Other utility scripts
+
+❌ NOT Committed (Ignored by .gitignore):
+   • target/ directory (compiled files)
+   • .idea/ directory (IDE settings)
+   • .class files
+   • Temporary files
+
+
+================================================================================
+                         GITHUB CREDENTIALS
+================================================================================
+
+When script asks for credentials:
+
+For Password Prompt:
+  Username: Your GitHub username
+  Password: Your GitHub personal access token
+            (NOT your GitHub password)
+
+How to Get Personal Access Token:
+  1. Visit: https://github.com/settings/tokens
+  2. Click: "Generate new token"
+  3. Name it: "DoAnTN Project"
+  4. Select scope: "repo" (✓)
+  5. Click: "Generate token"
+  6. Copy the token
+  7. Use it as password when prompted
+
+Alternative: If using 2FA or GitHub Desktop
+  • Use GitHub Desktop to authenticate
+  • Or configure SSH keys: https://github.com/settings/keys
+
+
+================================================================================
+                      WHAT HAPPENS IN SCRIPT
+================================================================================
+
+When you run the script, it will:
+
+[1/5] Initializing git repository
+      → Creates .git folder if it doesn't exist
+
+[2/5] Adding all files
+      → Stages all changes with "git add ."
+
+[3/5] Committing changes
+      → Creates commit with descriptive message
+
+[4/5] Setting up remote repository
+      → Connects local repo to GitHub with your URL
+
+[5/5] Pushing to GitHub
+      → Uploads files to GitHub (may ask for credentials)
+
+Success Message:
+  ✅ Successfully pushed to GitHub!
+  Repository: https://github.com/HDat129004/Graduation-Project
+
+
+================================================================================
+                         FILES PROVIDED
+================================================================================
+
+Scripts to Run:
+  1. commit_to_github.bat (Windows)
+  2. commit_to_github.sh (Linux/Mac)
+
+Documentation:
+  1. COMMIT_GUIDE.md (Complete guide - 15+ minutes)
+  2. GITHUB_COMMIT_QUICK_GUIDE.md (Quick guide - 5 minutes)
+  3. COMMIT_INSTRUCTIONS.txt (Simple reference)
+  4. This file (FINAL_COMMIT_INSTRUCTIONS.txt)
+
+All files are in: C:\Users\Admin\Desktop\DATN\DoAnTN\
+
+
+================================================================================
+                        VERIFY AFTER COMMIT
+================================================================================
+
+After script completes successfully:
+
+1. Go to: https://github.com/HDat129004/Graduation-Project
+2. You should see:
+   • All your source files
+   • All your documentation
+   • All your test files
+   • Commit history showing your commit
+   • README.md displayed on the page
+
+3. You can now:
+   • Share the link with your advisor
+   • Clone the repo on another computer
+   • Invite collaborators
+   • Add more commits in the future
+
+
+================================================================================
+                      TROUBLESHOOTING
+================================================================================
+
+Problem: "fatal: not a git repository"
+Solution: Run from project directory
+  cd C:\Users\Admin\Desktop\DATN\DoAnTN
+  Then run the script again
+
+Problem: "Authentication failed"
+Solution: Use GitHub personal access token instead of password
+  1. Get token from: https://github.com/settings/tokens
+  2. Use token as password when prompted
+
+Problem: "fatal: remote origin already exists"
+Solution: Update the remote URL
+  git remote set-url origin https://github.com/HDat129004/Graduation-Project.git
+  Then push: git push -u origin main
+
+Problem: "could not read Username"
+Solution: Configure git user info
+  git config --global user.name "Your Name"
+  git config --global user.email "your@email.com"
+  Then try again
+
+Problem: "permission denied"
+Solution: Check you have write access to the GitHub repo
+  • Verify you own the repository
+  • Check collaborator settings
+  • Try using HTTPS instead of SSH
+
+
+================================================================================
+                         TIMING ESTIMATE
+================================================================================
+
+Preparation: Already done! ✅
+Script execution: 2-3 minutes (depending on files size)
+GitHub verification: 1-2 minutes
+Total time: ~5 minutes
+
+
+================================================================================
+                          NEXT STEPS
+================================================================================
+
+STEP 1: Run the Commit Script (2-3 minutes)
+  Windows: Double-click commit_to_github.bat
+  Linux/Mac: bash commit_to_github.sh
+
+STEP 2: Verify on GitHub (1-2 minutes)
+  1. Go to: https://github.com/HDat129004/Graduation-Project
+  2. Check that all files are there
+  3. Check commit history
+
+STEP 3: Share (Optional)
+  1. Copy the repository link
+  2. Send to your advisor: https://github.com/HDat129004/Graduation-Project
+  3. They can now view your project
+
+STEP 4: Future Commits (When needed)
+  When you make changes, use:
+  git add .
+  git commit -m "Your commit message"
+  git push
+
+
+================================================================================
+                        FILES TO REFERENCE
+================================================================================
+
+Need more help? Read these files:
+
+For complete walkthrough: COMMIT_GUIDE.md
+For quick reference: GITHUB_COMMIT_QUICK_GUIDE.md
+For simple instructions: COMMIT_INSTRUCTIONS.txt
+
+For other project info: See other documentation files in project folder
+
+
+================================================================================
+                         FINAL CHECKLIST
+================================================================================
+
+Before Running Script:
+  ☑ Internet connection active
+  ☑ GitHub account created
+  ☑ Have GitHub credentials ready (username + token)
+  ☑ Running from project folder
+
+During Script:
+  ☑ Answer prompts (username/password)
+  ☑ Check for any error messages
+  ☑ Wait for completion
+
+After Script:
+  ☑ Verify files on GitHub
+  ☑ Check commit history
+  ☑ Share link if needed
+
+
+================================================================================
+                            START NOW!
+================================================================================
+
+👉 WINDOWS:
+   Double-click: commit_to_github.bat
+
+👉 LINUX/MAC:
+   Run: bash commit_to_github.sh
+
+👉 MANUAL:
+   Follow manual commands above
+
+That's it! Your project will be on GitHub in ~5 minutes! 🎉
+
+================================================================================
+                             STATUS
+================================================================================
+
+Project Ready: ✅ YES
+Code Complete: ✅ YES
+Tests Complete: ✅ YES
+Documentation Complete: ✅ YES
+Scripts Ready: ✅ YES
+GitHub Setup: ✅ Ready
+Ready to Commit: ✅ YES!!!
+
+Go ahead and run the commit script now! 🚀
+
+================================================================================
+
