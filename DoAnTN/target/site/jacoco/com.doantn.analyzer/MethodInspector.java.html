@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MethodInspector.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DoAnTN - Tự động sinh Unit Test cho Java</a> &gt; <a href="index.source.html" class="el_package">com.doantn.analyzer</a> &gt; <span class="el_source">MethodInspector.java</span></div><h1>MethodInspector.java</h1><pre class="source lang-java linenums">package com.doantn.analyzer;
+
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
+import com.github.javaparser.ast.body.RecordDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.file.Path;
+import java.util.List;
+
+/**
+ * MethodInspector: Parse a single .java file and print all methods (name, return type, parameters)
+ * in a simple tree structure for quick inspection.
+ *
+ * Usage (from project root):
+ * mvn -Dexec.mainClass=&quot;com.doantn.analyzer.MethodInspector&quot; -Dexec.args=&quot;/full/path/To/MyClass.java&quot; exec:java
+ */
+<span class="nc" id="L24">public class MethodInspector {</span>
+
+    public static void main(String[] args) {
+<span class="pc bpc" id="L27" title="1 of 2 branches missed.">        if (args.length != 1) {</span>
+<span class="nc" id="L28">            System.err.println(&quot;Usage: MethodInspector &lt;path-to-.java-file&gt;&quot;);</span>
+<span class="nc" id="L29">            System.exit(2);</span>
+        }
+
+<span class="fc" id="L32">        Path filePath = Path.of(args[0]);</span>
+<span class="fc" id="L33">        File file = filePath.toFile();</span>
+
+<span class="pc bpc" id="L35" title="2 of 4 branches missed.">        if (!file.exists() || !file.isFile()) {</span>
+<span class="nc" id="L36">            System.err.println(&quot;File not found: &quot; + filePath);</span>
+<span class="nc" id="L37">            System.exit(3);</span>
+        }
+
+<span class="fc" id="L40">        try (FileInputStream in = new FileInputStream(file)) {</span>
+<span class="fc" id="L41">            CompilationUnit cu = StaticJavaParser.parse(in);</span>
+
+<span class="fc" id="L43">            System.out.println(&quot;Source: &quot; + file.getAbsolutePath());</span>
+
+            // Print top-level types and their methods
+<span class="fc" id="L46">            List&lt;TypeDeclaration&lt;?&gt;&gt; types = cu.getTypes();</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">            if (types.isEmpty()) {</span>
+<span class="nc" id="L48">                System.out.println(&quot;(no top-level types found in the file)&quot;);</span>
+            }
+
+<span class="fc bfc" id="L51" title="All 2 branches covered.">            for (int ti = 0; ti &lt; types.size(); ti++) {</span>
+<span class="fc" id="L52">                TypeDeclaration&lt;?&gt; td = types.get(ti);</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">                boolean isLastType = (ti == types.size() - 1);</span>
+
+<span class="fc" id="L55">                String typeKind = typeKind(td);</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">                printLine((isLastType ? &quot;└─ &quot; : &quot;├─ &quot;) + typeKind + &quot;: &quot; + td.getNameAsString());</span>
+
+<span class="fc" id="L58">                List&lt;MethodDeclaration&gt; methods = td.getMethods();</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">                if (methods.isEmpty()) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">                    printLine((isLastType ? &quot;   └─ &quot; : &quot;│  └─ &quot;) + &quot;(no methods)&quot;);</span>
+                } else {
+<span class="fc bfc" id="L62" title="All 2 branches covered.">                    for (int mi = 0; mi &lt; methods.size(); mi++) {</span>
+<span class="fc" id="L63">                        MethodDeclaration m = methods.get(mi);</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">                        boolean isLastMethod = (mi == methods.size() - 1);</span>
+
+<span class="pc bpc" id="L66" title="1 of 4 branches missed.">                        String methodPrefix = (isLastType ? &quot;   &quot; : &quot;│  &quot;) + (isLastMethod ? &quot;└─ &quot; : &quot;├─ &quot;);</span>
+<span class="fc" id="L67">                        String methodSignature = m.getNameAsString() + &quot; : &quot; + m.getType().toString();</span>
+<span class="fc" id="L68">                        printLine(methodPrefix + methodSignature);</span>
+
+                        // Parameters
+<span class="fc" id="L71">                        List&lt;Parameter&gt; params = m.getParameters();</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">                        if (params.isEmpty()) {</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">                            printLine((isLastType ? &quot;      &quot; : &quot;│     &quot;) + &quot;└─ (no parameters)&quot;);</span>
+                        } else {
+<span class="fc bfc" id="L75" title="All 2 branches covered.">                            for (int pi = 0; pi &lt; params.size(); pi++) {</span>
+<span class="fc" id="L76">                                Parameter p = params.get(pi);</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">                                boolean isLastParam = (pi == params.size() - 1);</span>
+<span class="pc bpc" id="L78" title="1 of 4 branches missed.">                                String paramPrefix = (isLastType ? &quot;      &quot; : &quot;│     &quot;) + (isLastParam ? &quot;└─ &quot; : &quot;├─ &quot;);</span>
+<span class="fc" id="L79">                                String paramText = p.getNameAsString() + &quot; : &quot; + p.getType().toString();</span>
+<span class="fc" id="L80">                                printLine(paramPrefix + paramText);</span>
+                            }
+                        }
+                    }
+                }
+            }
+
+<span class="nc" id="L87">        } catch (Exception e) {</span>
+<span class="nc" id="L88">            System.err.println(&quot;Error parsing file: &quot; + e.getMessage());</span>
+<span class="nc" id="L89">            e.printStackTrace();</span>
+<span class="nc" id="L90">            System.exit(4);</span>
+<span class="fc" id="L91">        }</span>
+<span class="fc" id="L92">    }</span>
+
+    private static String typeKind(TypeDeclaration&lt;?&gt; td) {
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (td instanceof ClassOrInterfaceDeclaration) {</span>
+<span class="fc" id="L96">            ClassOrInterfaceDeclaration c = (ClassOrInterfaceDeclaration) td;</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">            return (c.isInterface() ? &quot;Interface&quot; : &quot;Class&quot;);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        } else if (td instanceof EnumDeclaration) {</span>
+<span class="nc" id="L99">            return &quot;Enum&quot;;</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        } else if (td instanceof RecordDeclaration) {</span>
+<span class="nc" id="L101">            return &quot;Record&quot;;</span>
+        } else {
+<span class="nc" id="L103">            return &quot;Type&quot;;</span>
+        }
+    }
+
+    private static void printLine(String text) {
+<span class="fc" id="L108">        System.out.println(text);</span>
+<span class="fc" id="L109">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

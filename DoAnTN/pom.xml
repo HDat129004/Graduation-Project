@@ -21,6 +21,7 @@
         <mockito.version>4.11.0</mockito.version>
         <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
         <maven.compiler.plugin.version>3.10.1</maven.compiler.plugin.version>
+        <jacoco.version>0.8.10</jacoco.version>
     </properties>
 
     <dependencies>
@@ -86,6 +87,27 @@
                 </configuration>
             </plugin>
 
+            <!-- JaCoCo plugin for Code Coverage (Line & Branch Coverage) -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- (Optional) Build-helper to add generated-sources if you emit Java files during build -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -116,6 +138,28 @@
                     <!-- Default main class; you can override with -Dexec.mainClass if needed -->
                     <mainClass>com.doantn.analyzer.MethodInspector</mainClass>
                 </configuration>
+            </plugin>
+
+            <!-- Maven Shade Plugin to create an executable uber-jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.doantn.app.App</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
         </plugins>
