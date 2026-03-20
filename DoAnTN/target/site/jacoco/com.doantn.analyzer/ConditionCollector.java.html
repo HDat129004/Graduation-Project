@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConditionCollector.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DoAnTN - Tự động sinh Unit Test cho Java</a> &gt; <a href="index.source.html" class="el_package">com.doantn.analyzer</a> &gt; <span class="el_source">ConditionCollector.java</span></div><h1>ConditionCollector.java</h1><pre class="source lang-java linenums">package com.doantn.analyzer;
+
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.*;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * ConditionCollector: visitor that collects branch conditions (if/switch/for/foreach)
+ * and attempts to decompose expressions into simple atomic constraints.
+ *
+ * This is intentionally conservative and produces string-based constraints which can
+ * later be enriched by SymbolSolver to obtain types and declarations.
+ */
+<span class="nc" id="L20">public class ConditionCollector extends VoidVisitorAdapter&lt;List&lt;ConditionCollector.BranchCondition&gt;&gt; {</span>
+
+    @Override
+    public void visit(IfStmt n, List&lt;ConditionCollector.BranchCondition&gt; collector) {
+<span class="nc" id="L24">        super.visit(n, collector);</span>
+<span class="nc" id="L25">        String condition = n.getCondition().toString();</span>
+<span class="nc" id="L26">        int line = n.getBegin().map(p -&gt; p.line).orElse(-1);</span>
+<span class="nc" id="L27">        String method = findEnclosingMethodName(n);</span>
+<span class="nc" id="L28">        BranchCondition bc = new BranchCondition(BranchCondition.Kind.IF, condition, line, method);</span>
+<span class="nc" id="L29">        bc.atomicConstraints.addAll(decomposeExpression(n.getCondition()));</span>
+<span class="nc" id="L30">        collector.add(bc);</span>
+<span class="nc" id="L31">    }</span>
+
+    @Override
+    public void visit(SwitchStmt n, List&lt;ConditionCollector.BranchCondition&gt; collector) {
+<span class="nc" id="L35">        super.visit(n, collector);</span>
+<span class="nc" id="L36">        String selector = n.getSelector().toString();</span>
+<span class="nc" id="L37">        int line = n.getBegin().map(p -&gt; p.line).orElse(-1);</span>
+<span class="nc" id="L38">        String method = findEnclosingMethodName(n);</span>
+<span class="nc" id="L39">        BranchCondition bc = new BranchCondition(BranchCondition.Kind.SWITCH, selector, line, method);</span>
+<span class="nc" id="L40">        n.getEntries().forEach(entry -&gt; entry.getLabels().forEach(label -&gt; bc.extra.add(label.toString())));</span>
+<span class="nc" id="L41">        collector.add(bc);</span>
+<span class="nc" id="L42">    }</span>
+
+    @Override
+    public void visit(ForStmt n, List&lt;ConditionCollector.BranchCondition&gt; collector) {
+<span class="nc" id="L46">        super.visit(n, collector);</span>
+<span class="nc" id="L47">        Optional&lt;Expression&gt; cmp = n.getCompare();</span>
+<span class="nc" id="L48">        String cond = cmp.map(Expression::toString).orElse(&quot;(no-compare)&quot;);</span>
+<span class="nc" id="L49">        int line = n.getBegin().map(p -&gt; p.line).orElse(-1);</span>
+<span class="nc" id="L50">        String method = findEnclosingMethodName(n);</span>
+<span class="nc" id="L51">        BranchCondition bc = new BranchCondition(BranchCondition.Kind.FOR, cond, line, method);</span>
+<span class="nc" id="L52">        n.getInitialization().forEach(init -&gt; bc.extra.add(init.toString()));</span>
+<span class="nc" id="L53">        n.getUpdate().forEach(upd -&gt; bc.extra.add(upd.toString()));</span>
+<span class="nc" id="L54">        cmp.ifPresent(expression -&gt; bc.atomicConstraints.addAll(decomposeExpression(expression)));</span>
+<span class="nc" id="L55">        collector.add(bc);</span>
+<span class="nc" id="L56">    }</span>
+
+    @Override
+    public void visit(ForEachStmt n, List&lt;ConditionCollector.BranchCondition&gt; collector) {
+<span class="nc" id="L60">        super.visit(n, collector);</span>
+<span class="nc" id="L61">        String iterable = n.getIterable().toString();</span>
+<span class="nc" id="L62">        int line = n.getBegin().map(p -&gt; p.line).orElse(-1);</span>
+<span class="nc" id="L63">        String method = findEnclosingMethodName(n);</span>
+<span class="nc" id="L64">        BranchCondition bc = new BranchCondition(BranchCondition.Kind.FOREACH, iterable, line, method);</span>
+<span class="nc" id="L65">        bc.extra.add(n.getVariable().toString());</span>
+<span class="nc" id="L66">        collector.add(bc);</span>
+<span class="nc" id="L67">    }</span>
+
+    // Helper: find the enclosing method name (if any)
+    private String findEnclosingMethodName(Node n) {
+<span class="nc" id="L71">        Optional&lt;MethodDeclaration&gt; md = n.findAncestor(MethodDeclaration.class);</span>
+<span class="nc" id="L72">        return md.map(MethodDeclaration::getNameAsString).orElse(&quot;&lt;init/initializer&gt;&quot;);</span>
+    }
+
+    // Decompose an expression into atomic constraints where possible.
+    // This is conservative: it extracts comparisons and leaves method-calls/unknowns as-is.
+    private List&lt;AtomicConstraint&gt; decomposeExpression(Expression expr) {
+<span class="nc" id="L78">        List&lt;AtomicConstraint&gt; out = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (expr.isBinaryExpr()) {</span>
+<span class="nc" id="L80">            BinaryExpr be = expr.asBinaryExpr();</span>
+<span class="nc" id="L81">            BinaryExpr.Operator op = be.getOperator();</span>
+<span class="nc bnc" id="L82" title="All 4 branches missed.">            if (op == BinaryExpr.Operator.AND || op == BinaryExpr.Operator.OR) {</span>
+                // logical connectives: recurse on both sides
+<span class="nc" id="L84">                out.addAll(decomposeExpression(be.getLeft()));</span>
+<span class="nc" id="L85">                out.addAll(decomposeExpression(be.getRight()));</span>
+            } else {
+                // comparison or arithmetic: create atomic
+<span class="nc" id="L88">                AtomicConstraint ac = new AtomicConstraint(be.getLeft().toString(), op.asString(), be.getRight().toString());</span>
+<span class="nc" id="L89">                out.add(ac);</span>
+            }
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        } else if (expr.isMethodCallExpr()) {</span>
+<span class="nc" id="L92">            MethodCallExpr mc = expr.asMethodCallExpr();</span>
+<span class="nc" id="L93">            out.add(new AtomicConstraint(mc.toString(), &quot;call&quot;, &quot;&quot;));</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        } else if (expr.isUnaryExpr()) {</span>
+<span class="nc" id="L95">            UnaryExpr ue = expr.asUnaryExpr();</span>
+<span class="nc" id="L96">            out.add(new AtomicConstraint(ue.getExpression().toString(), ue.getOperator().asString(), &quot;&quot;));</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        } else if (expr.isEnclosedExpr()) {</span>
+<span class="nc" id="L98">            out.addAll(decomposeExpression(expr.asEnclosedExpr().getInner()));</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        } else if (expr.isInstanceOfExpr()) {</span>
+<span class="nc" id="L100">            InstanceOfExpr io = expr.asInstanceOfExpr();</span>
+<span class="nc" id="L101">            out.add(new AtomicConstraint(io.getExpression().toString(), &quot;instanceof&quot;, io.getType().toString()));</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        } else if (expr.isFieldAccessExpr()) {</span>
+<span class="nc" id="L103">            out.add(new AtomicConstraint(expr.toString(), &quot;field&quot;, &quot;&quot;));</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        } else if (expr.isNameExpr()) {</span>
+<span class="nc" id="L105">            out.add(new AtomicConstraint(expr.toString(), &quot;name&quot;, &quot;&quot;));</span>
+        } else {
+            // fallback: record the textual expression
+<span class="nc" id="L108">            out.add(new AtomicConstraint(expr.toString(), &quot;expr&quot;, &quot;&quot;));</span>
+        }
+<span class="nc" id="L110">        return out;</span>
+    }
+
+    // Simple POJO classes to hold constraints and branch metadata
+    public static class AtomicConstraint {
+        public String left;
+        public String op;
+        public String right;
+
+<span class="nc" id="L119">        public AtomicConstraint(String left, String op, String right) {</span>
+<span class="nc" id="L120">            this.left = left;</span>
+<span class="nc" id="L121">            this.op = op;</span>
+<span class="nc" id="L122">            this.right = right;</span>
+<span class="nc" id="L123">        }</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L127">            return String.format(&quot;%s %s %s&quot;, left, op, right).trim();</span>
+        }
+    }
+
+    public static class BranchCondition {
+<span class="nc" id="L132">        public enum Kind { IF, SWITCH, FOR, FOREACH }</span>
+
+        public Kind kind;
+        public String conditionText;
+<span class="nc" id="L136">        public List&lt;String&gt; extra = new ArrayList&lt;&gt;();</span>
+        public int line;
+        public String methodName;
+<span class="nc" id="L139">        public List&lt;AtomicConstraint&gt; atomicConstraints = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L141">        public BranchCondition(Kind kind, String conditionText, int line, String methodName) {</span>
+<span class="nc" id="L142">            this.kind = kind;</span>
+<span class="nc" id="L143">            this.conditionText = conditionText;</span>
+<span class="nc" id="L144">            this.line = line;</span>
+<span class="nc" id="L145">            this.methodName = methodName;</span>
+<span class="nc" id="L146">        }</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L150">            StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L151">            sb.append(kind).append(&quot; @&quot;).append(line).append(&quot; in &quot;).append(methodName).append(&quot;: &quot;).append(conditionText);</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">            if (!extra.isEmpty()) sb.append(&quot; extras=&quot;).append(extra);</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">            if (!atomicConstraints.isEmpty()) {</span>
+<span class="nc" id="L154">                sb.append(&quot;\n  Constraints:&quot;);</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                for (AtomicConstraint ac : atomicConstraints) sb.append(&quot;\n    - &quot;).append(ac.toString());</span>
+            }
+<span class="nc" id="L157">            return sb.toString();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
