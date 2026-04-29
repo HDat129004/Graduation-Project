@@ -8,32 +8,33 @@ import java.io.File;
 import java.util.List;
 
 /**
- * App: Main entry point for the DoAnTN test generation tool.
+ * App: Hàm main (Điểm khởi chạy chính) của công cụ DoAnTN.
+ * 
+ * Luồng hoạt động (Workflow):
+ * 1. Nhận đường dẫn file mã nguồn từ giao diện dòng lệnh (CLI).
+ * 2. Gọi AnalyzerService để đọc hiểu cấu trúc file đó.
+ * 3. Truyền kết quả phân tích sang TestGenerator để tự động sinh code Unit Test.
  */
 public class App {
     public static void main(String[] args) {
         System.out.println("========================================");
-        System.out.println("DoAnTN - Auto-generate Unit Tests v0.1.0");
+        System.out.println("DoAnTN - Tự động sinh Unit Test v0.1.0");
         System.out.println("========================================");
         System.out.println();
 
         String sourcePath;
         String outputDir;
 
-        // DEBUG: Print received arguments
-        System.out.println("[DEBUG] Arguments received: " + args.length);
-        for (int i = 0; i < args.length; i++) {
-            System.out.println("[DEBUG] Arg[" + i + "]: " + args[i]);
-        }
-
+        // KIỂM TRA THAM SỐ ĐẦU VÀO (Arguments)
+        // args[0] là file cần test, args[1] là thư mục lưu test sinh ra
         if (args.length > 0) {
             sourcePath = args[0];
             outputDir = args.length > 1 ? args[1] : "src/test/java";
         } else {
-            // Fallback defaults if no arguments provided
-            System.out.println("[WARN] No arguments provided. Using default example configuration.");
-            // FIX: Make the default path absolute or relative to the DoAnTN module, 
-            // handling the case where IDE runs from the root "Graduation-Project" directory.
+            // NẾU KHÔNG CÓ THAM SỐ: Chạy file ví dụ mặc định (Calculator.java)
+            System.out.println("[CẢNH BÁO] Không có tham số. Sử dụng cấu hình ví dụ mặc định.");
+            
+            // Xử lý đường dẫn tương đối (phòng trường hợp người dùng chạy từ thư mục cha)
             File fallbackFile = new File("DoAnTN/src/main/java/com/doantn/example/Calculator.java");
             if (fallbackFile.exists()) {
                  sourcePath = "DoAnTN/src/main/java/com/doantn/example/Calculator.java";
@@ -42,27 +43,22 @@ public class App {
                  sourcePath = "src/main/java/com/doantn/example/Calculator.java";
                  outputDir = "src/test/java";
             }
-            
         }
 
         File sourceFile = new File(sourcePath);
-        // Try to resolve relative path if file doesn't exist
+        
+        // KIỂM TRA FILE TỒN TẠI HAY KHÔNG
         if (!sourceFile.exists()) {
             File currentDir = new File(".");
-            System.out.println("[INFO] Current working directory: " + currentDir.getAbsolutePath());
-            
-            // Try absolute path based on current dir
             sourceFile = new File(currentDir, sourcePath);
         }
 
         if (!sourceFile.exists()) {
-            System.err.println("[ERROR] Source path does not exist: " + sourcePath);
-            System.err.println("[ERROR] Absolute path tried: " + sourceFile.getAbsolutePath());
+            System.err.println("[LỖI] Không tìm thấy đường dẫn: " + sourcePath);
             
-            // Final desperate attempt for IDEs running from parent project root
+            // Cố gắng tìm lần cuối (Trường hợp IDE IntelliJ tự động nhảy ra thư mục cha)
             File desperateAttempt = new File(System.getProperty("user.dir") + "/DoAnTN/" + sourcePath.replace("DoAnTN/", ""));
             if(desperateAttempt.exists()) {
-                 System.out.println("[INFO] Found file using fallback path: " + desperateAttempt.getAbsolutePath());
                  sourceFile = desperateAttempt;
             } else {
                  printUsage();
@@ -70,60 +66,72 @@ public class App {
             }
         }
 
+        // BẮT ĐẦU CHẠY CORE LOGIC (Phân tích & Sinh mã)
         try {
+            // Khởi tạo 2 module lõi
             AnalyzerService analyzer = new AnalyzerService();
             TestGenerator generator = new TestGenerator(outputDir);
 
-            System.out.println("[INFO] Analyzing source: " + sourceFile.getAbsolutePath());
-            System.out.println("[INFO] Output directory: " + outputDir);
+            System.out.println("[THÔNG TIN] Đang phân tích mã nguồn: " + sourceFile.getAbsolutePath());
+            System.out.println("[THÔNG TIN] Thư mục đầu ra (Sinh Test): " + outputDir);
             System.out.println();
 
+            // Nếu đầu vào là một file .java
             if (sourceFile.isFile() && sourceFile.getName().endsWith(".java")) {
-                // Single file analysis
                 analyzeAndGenerateForFile(sourceFile.getAbsolutePath(), analyzer, generator);
-            } else if (sourceFile.isDirectory()) {
-                // Directory analysis
+            } 
+            // Nếu đầu vào là một thư mục (quét toàn bộ file bên trong)
+            else if (sourceFile.isDirectory()) {
                 analyzeAndGenerateForDirectory(sourceFile.getAbsolutePath(), analyzer, generator);
             } else {
-                System.err.println("[ERROR] Invalid source path. Must be a .java file or directory.");
+                System.err.println("[LỖI] Đường dẫn không hợp lệ. Phải là file .java hoặc thư mục.");
                 System.exit(3);
             }
 
             System.out.println();
             System.out.println("========================================");
-            System.out.println("[SUCCESS] Test generation completed!");
+            System.out.println("[THÀNH CÔNG] Đã sinh Unit Test hoàn tất!");
             System.out.println("========================================");
 
         } catch (Exception e) {
-            System.err.println("[ERROR] Unexpected error: " + e.getMessage());
+            System.err.println("[LỖI] Lỗi không xác định: " + e.getMessage());
             e.printStackTrace();
             System.exit(4);
         }
     }
 
+    /**
+     * Hàm hỗ trợ: Xử lý cho 1 file duy nhất
+     */
     private static void analyzeAndGenerateForFile(String filePath, AnalyzerService analyzer, TestGenerator generator) {
+        // BƯỚC 1: Dùng Analyzer đọc file .java và chuyển thành Model
         ClassModel classModel = analyzer.analyze(filePath);
+        
+        // BƯỚC 2: Nếu đọc thành công, truyền Model cho Generator để viết code Test
         if (classModel != null) {
             generator.generateTests(classModel);
         }
     }
 
+    /**
+     * Hàm hỗ trợ: Xử lý cho cả 1 thư mục
+     */
     private static void analyzeAndGenerateForDirectory(String dirPath, AnalyzerService analyzer, TestGenerator generator) {
         List<ClassModel> classModels = analyzer.analyzeDirectory(dirPath);
         if (!classModels.isEmpty()) {
-            System.out.println("[INFO] Found " + classModels.size() + " Java classes to analyze");
+            System.out.println("[THÔNG TIN] Đã tìm thấy " + classModels.size() + " lớp Java để phân tích");
             System.out.println();
             generator.generateTests(classModels);
         } else {
-            System.out.println("[WARN] No Java source files found in: " + dirPath);
+            System.out.println("[CẢNH BÁO] Không tìm thấy file .java nào trong: " + dirPath);
         }
     }
 
+    /**
+     * Hàm in ra hướng dẫn sử dụng công cụ
+     */
     private static void printUsage() {
-        System.out.println("Usage: java -jar doantn.jar <source-file-or-directory> [output-directory]");
-        System.out.println();
-        System.out.println("Arguments:");
-        System.out.println("  <source-file-or-directory>  Path to a single .java file or source directory");
-        System.out.println("  [output-directory]          Output directory for generated tests (default: src/test/java)");
+        System.out.println("Cách dùng: java -jar doantn.jar <đường-dẫn-file-java> [thư-mục-đầu-ra]");
+        System.out.println("Ví dụ: java -jar doantn.jar src/main/java/com/doantn/example/Calculator.java src/test/java");
     }
 }

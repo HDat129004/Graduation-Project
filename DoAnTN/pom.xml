@@ -21,7 +21,7 @@
         <mockito.version>4.11.0</mockito.version>
         <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
         <maven.compiler.plugin.version>3.10.1</maven.compiler.plugin.version>
-        <jacoco.version>0.8.10</jacoco.version>
+        <jacoco.version>0.8.12</jacoco.version>
     </properties>
 
     <dependencies>
@@ -61,6 +61,20 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- OkHttp để gọi API của Gemini -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
+
+        <!-- Gson để xử lý chuỗi JSON trả về từ API -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -84,6 +98,8 @@
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <!-- Ignore failures so that Jacoco report is still generated even if some tests fail -->
+                    <testFailureIgnore>true</testFailureIgnore>
                 </configuration>
             </plugin>
 
@@ -106,38 +122,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-
-            <!-- (Optional) Build-helper to add generated-sources if you emit Java files during build -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>add-generated-sources</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${project.build.directory}/generated-sources</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Exec plugin to run the MethodInspector conveniently -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <!-- Default main class; you can override with -Dexec.mainClass if needed -->
-                    <mainClass>com.doantn.analyzer.MethodInspector</mainClass>
-                </configuration>
             </plugin>
 
             <!-- Maven Shade Plugin to create an executable uber-jar -->

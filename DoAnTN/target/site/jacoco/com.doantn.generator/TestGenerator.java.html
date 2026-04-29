@@ -1,119 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TestGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DoAnTN - Tự động sinh Unit Test cho Java</a> &gt; <a href="index.source.html" class="el_package">com.doantn.generator</a> &gt; <span class="el_source">TestGenerator.java</span></div><h1>TestGenerator.java</h1><pre class="source lang-java linenums">package com.doantn.generator;
 
 import com.doantn.model.ClassModel;
-import com.doantn.model.MethodModel;
-import com.doantn.model.ParameterModel;
-
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
 /**
- * TestGenerator: uses JavaPoet to create Java test sources based on the analyzed model.
- * Responsibilities:
- * - Accept model objects (from analyzer)
- * - Build JUnit test classes (methods, imports, assertions)
- * - Emit .java files under a configurable output directory (e.g. target/generated-tests)
+ * TestGenerator: Module điều phối việc sinh mã Test.
+ * 
+ * Trách nhiệm:
+ * - Nhận các đối tượng Model từ Analyzer.
+ * - Gọi đến JavaPoetTestGenerator để thực hiện việc viết code (Thuật toán AST).
+ * - MỚI: Gọi đến AITestGenerator để thực hiện việc viết code bằng Trí tuệ nhân tạo (Gemini).
  */
 public class TestGenerator {
 
-    private String outputDir;
+    private final String outputDir;
+    private final AITestGenerator aiGenerator;
 
-    public TestGenerator() {
-<span class="nc" id="L24">        this(&quot;target/generated-tests&quot;);</span>
-<span class="nc" id="L25">    }</span>
-
-<span class="fc" id="L27">    public TestGenerator(String outputDir) {</span>
-<span class="fc" id="L28">        this.outputDir = outputDir;</span>
-        // Create output directory if it doesn't exist
+<span class="fc" id="L21">    public TestGenerator(String outputDir) {</span>
+<span class="fc" id="L22">        this.outputDir = outputDir;</span>
+<span class="fc" id="L23">        this.aiGenerator = new AITestGenerator(outputDir);</span>
+        
+        // Tạo thư mục đầu ra nếu nó chưa tồn tại
         try {
-<span class="fc" id="L31">            Files.createDirectories(Paths.get(outputDir));</span>
-<span class="nc" id="L32">        } catch (Exception e) {</span>
-<span class="nc" id="L33">            System.err.println(&quot;Failed to create output directory: &quot; + e.getMessage());</span>
-<span class="fc" id="L34">        }</span>
-<span class="fc" id="L35">    }</span>
+<span class="fc" id="L27">            Files.createDirectories(Paths.get(outputDir));</span>
+<span class="nc" id="L28">        } catch (Exception e) {</span>
+<span class="nc" id="L29">            System.err.println(&quot;[LỖI] Không thể tạo thư mục đầu ra: &quot; + e.getMessage());</span>
+<span class="fc" id="L30">        }</span>
+<span class="fc" id="L31">    }</span>
 
     /**
-     * Generate tests for a ClassModel
-     * @param classModel The analyzed class model
+     * Sinh test cho một ClassModel duy nhất.
      */
     public void generateTests(ClassModel classModel) {
-<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        if (classModel == null) {</span>
-<span class="nc" id="L43">            System.err.println(&quot;ClassModel is null&quot;);</span>
-<span class="nc" id="L44">            return;</span>
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (classModel == null) {</span>
+<span class="nc" id="L38">            System.err.println(&quot;[LỖI] ClassModel bị null, không thể sinh test.&quot;);</span>
+<span class="nc" id="L39">            return;</span>
         }
 
-<span class="fc" id="L47">        String packageName = classModel.getPackageName();</span>
-<span class="fc" id="L48">        String className = classModel.getClassName();</span>
-<span class="fc" id="L49">        List&lt;MethodModel&gt; methods = classModel.getMethods();</span>
+<span class="fc" id="L42">        String packageName = classModel.getPackageName();</span>
+<span class="fc" id="L43">        String className = classModel.getClassName();</span>
 
-<span class="fc" id="L51">        System.out.println(&quot;[INFO] Generating tests for: &quot; + className);</span>
+<span class="fc" id="L45">        System.out.println(&quot;[THÔNG TIN] Đang sinh bộ test cho Class: &quot; + className);</span>
 
-<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        if (methods.isEmpty()) {</span>
-<span class="nc" id="L54">            System.out.println(&quot;[WARN] No public methods found to test in: &quot; + className);</span>
-<span class="nc" id="L55">            return;</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        if (classModel.getMethods().isEmpty()) {</span>
+<span class="nc" id="L48">            System.out.println(&quot;[CẢNH BÁO] Không tìm thấy hàm public nào để test trong class: &quot; + className);</span>
+<span class="nc" id="L49">            return;</span>
         }
 
-<span class="fc bfc" id="L58" title="All 2 branches covered.">        for (MethodModel method : methods) {</span>
-            try {
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">                String testPackage = packageName.equals(&quot;(default)&quot;) ?</span>
-<span class="nc" id="L61">                        &quot;com.doantn.generated.tests&quot; :</span>
-<span class="fc" id="L62">                        packageName + &quot;.tests&quot;;</span>
+        try {
+            // Xác định package cho file test
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">            String testPackage = packageName.equals(&quot;(default)&quot;) ?</span>
+<span class="nc" id="L55">                    &quot;com.doantn.generated.tests&quot; :</span>
+<span class="fc" id="L56">                    packageName + &quot;.tests&quot;;</span>
 
-                // Convert model to JavaPoetTestGenerator format
-<span class="fc" id="L65">                var params = convertParameters(method.getParameters());</span>
+            // 1. SINH TEST BẰNG THUẬT TOÁN AST TRUYỀN THỐNG (JavaPoet)
+<span class="fc" id="L59">            JavaPoetTestGenerator.generateTestClass(</span>
+                    classModel,
+                    testPackage,
+                    outputDir
+            );
+<span class="fc" id="L64">            System.out.println(&quot;[OK] Đã sinh file test bằng AST (JavaPoet) cho: &quot; + className);</span>
 
-<span class="fc" id="L67">                JavaPoetTestGenerator.generateTest(</span>
-                        testPackage,
-                        packageName,
-                        className,
-                        new JavaPoetTestGenerator.MethodModel(
-<span class="fc" id="L72">                                method.getMethodName(),</span>
-<span class="fc" id="L73">                                method.getReturnType(),</span>
-                                params
-                        ),
-                        outputDir
-                );
+            // 2. SINH TEST BẰNG TRÍ TUỆ NHÂN TẠO (AI Gemini)
+            // Tính năng này dùng để lấy kết quả so sánh với thuật toán truyền thống
+<span class="fc" id="L68">            aiGenerator.generateTestUsingAI(</span>
+<span class="fc" id="L69">                    classModel.getFilePath(), </span>
+                    className, 
+                    packageName
+            );
 
-<span class="fc" id="L79">                System.out.println(&quot;[OK] Generated test for: &quot; + className + &quot;.&quot; + method.getMethodName());</span>
-
-<span class="nc" id="L81">            } catch (Exception e) {</span>
-<span class="nc" id="L82">                System.err.println(&quot;[ERROR] Failed to generate test for &quot; + method.getMethodName() + &quot;: &quot; + e.getMessage());</span>
-<span class="nc" id="L83">                e.printStackTrace();</span>
-<span class="fc" id="L84">            }</span>
-<span class="fc" id="L85">        }</span>
-<span class="fc" id="L86">    }</span>
+<span class="nc" id="L74">        } catch (Exception e) {</span>
+<span class="nc" id="L75">            System.err.println(&quot;[LỖI] Không thể sinh test cho class &quot; + className + &quot;: &quot; + e.getMessage());</span>
+<span class="nc" id="L76">            e.printStackTrace();</span>
+<span class="fc" id="L77">        }</span>
+<span class="fc" id="L78">    }</span>
 
     /**
-     * Generate tests for multiple classes
-     * @param classModels List of analyzed class models
+     * Sinh test cho một danh sách các Class.
      */
     public void generateTests(List&lt;ClassModel&gt; classModels) {
-<span class="nc bnc" id="L93" title="All 4 branches missed.">        if (classModels == null || classModels.isEmpty()) {</span>
-<span class="nc" id="L94">            System.out.println(&quot;[WARN] No class models to generate tests for&quot;);</span>
-<span class="nc" id="L95">            return;</span>
+<span class="nc bnc" id="L84" title="All 4 branches missed.">        if (classModels == null || classModels.isEmpty()) {</span>
+<span class="nc" id="L85">            System.out.println(&quot;[CẢNH BÁO] Không có class nào để sinh test.&quot;);</span>
+<span class="nc" id="L86">            return;</span>
         }
 
-<span class="nc" id="L98">        System.out.println(&quot;[INFO] Generating tests for &quot; + classModels.size() + &quot; classes&quot;);</span>
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        for (ClassModel classModel : classModels) {</span>
-<span class="nc" id="L100">            generateTests(classModel);</span>
-<span class="nc" id="L101">        }</span>
-<span class="nc" id="L102">        System.out.println(&quot;[INFO] Test generation completed. Output: &quot; + outputDir);</span>
-<span class="nc" id="L103">    }</span>
-
-    private List&lt;JavaPoetTestGenerator.ParamModel&gt; convertParameters(List&lt;ParameterModel&gt; params) {
-<span class="fc" id="L106">        return params.stream()</span>
-<span class="fc" id="L107">                .map(p -&gt; new JavaPoetTestGenerator.ParamModel(p.getParamName(), p.getParamType()))</span>
-<span class="fc" id="L108">                .toList();</span>
-    }
-
-    public String getOutputDir() {
-<span class="nc" id="L112">        return outputDir;</span>
-    }
-
-    public void setOutputDir(String outputDir) {
-<span class="nc" id="L116">        this.outputDir = outputDir;</span>
-<span class="nc" id="L117">    }</span>
+<span class="nc" id="L89">        System.out.println(&quot;[THÔNG TIN] Chuẩn bị sinh test cho &quot; + classModels.size() + &quot; class.&quot;);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        for (ClassModel classModel : classModels) {</span>
+<span class="nc" id="L91">            generateTests(classModel);</span>
+<span class="nc" id="L92">        }</span>
+<span class="nc" id="L93">        System.out.println(&quot;[THÔNG TIN] Hoàn tất sinh test. Kết quả được lưu tại: &quot; + outputDir);</span>
+<span class="nc" id="L94">    }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

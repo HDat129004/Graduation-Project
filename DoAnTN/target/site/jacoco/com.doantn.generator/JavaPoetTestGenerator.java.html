@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JavaPoetTestGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DoAnTN - Tự động sinh Unit Test cho Java</a> &gt; <a href="index.source.html" class="el_package">com.doantn.generator</a> &gt; <span class="el_source">JavaPoetTestGenerator.java</span></div><h1>JavaPoetTestGenerator.java</h1><pre class="source lang-java linenums">package com.doantn.generator;
 
+import com.doantn.model.ClassModel;
+import com.doantn.model.MethodModel;
+import com.doantn.model.ParameterModel;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
@@ -14,152 +16,145 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /**
- * Simple JavaPoet-based test generator. Given method metadata, generates a JUnit 5 test
- * that instantiates the class-under-test and calls the method, producing a sample
- * Assertions.assertEquals (or assertDoesNotThrow for void).
+ * JavaPoetTestGenerator: Trình sinh mã nguồn tự động sử dụng thư viện JavaPoet.
+ * ĐÃ NÂNG CẤP: Sinh nhiều test case cho cùng một hàm (Boundary Value Analysis).
  */
-<span class="nc" id="L21">public class JavaPoetTestGenerator {</span>
+<span class="nc" id="L22">public class JavaPoetTestGenerator {</span>
 
-    public static class ParamModel {
-        public final String name;
-        public final String type; // e.g. &quot;int&quot;, &quot;java.lang.String&quot;
-
-<span class="fc" id="L27">        public ParamModel(String name, String type) {</span>
-<span class="fc" id="L28">            this.name = name;</span>
-<span class="fc" id="L29">            this.type = type;</span>
-<span class="fc" id="L30">        }</span>
-    }
-
-    public static class MethodModel {
-        public final String name;
-        public final String returnType; // e.g. &quot;int&quot; or &quot;java.lang.String&quot; or &quot;void&quot;
-        public final List&lt;ParamModel&gt; params;
-
-<span class="fc" id="L38">        public MethodModel(String name, String returnType, List&lt;ParamModel&gt; params) {</span>
-<span class="fc" id="L39">            this.name = name;</span>
-<span class="fc" id="L40">            this.returnType = returnType;</span>
-<span class="fc" id="L41">            this.params = params;</span>
-<span class="fc" id="L42">        }</span>
-    }
+    public static void generateTestClass(ClassModel classModel, String testPackage, String outputDir) throws Exception {
+<span class="fc" id="L25">        String className = classModel.getClassName();</span>
+<span class="fc" id="L26">        String classPackage = classModel.getPackageName();</span>
+        
+<span class="pc bpc" id="L28" title="1 of 2 branches missed.">        ClassName classUnderTest = ClassName.get(classPackage.equals(&quot;(default)&quot;) ? &quot;&quot; : classPackage, className);</span>
+<span class="fc" id="L29">        String testClassName = className + &quot;Test&quot;;</span>
+        
+<span class="fc" id="L31">        TypeSpec.Builder testClassBuilder = TypeSpec.classBuilder(testClassName)</span>
+<span class="fc" id="L32">                .addModifiers(Modifier.PUBLIC);</span>
+                
+        // Lặp qua từng hàm trong file gốc
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        for (MethodModel method : classModel.getMethods()) {</span>
+            
+            // NÂNG CẤP: Nếu hàm có tham số, tự động tách làm 3 Test Case (0, Âm, Dương)
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">            int numTests = method.getParameters().isEmpty() ? 1 : 3;</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">            String[] testSuffixes = method.getParameters().isEmpty() ? new String[]{&quot;&quot;} : new String[]{&quot;_withZero&quot;, &quot;_withPositive&quot;, &quot;_withNegative&quot;};</span>
+            
+<span class="fc bfc" id="L41" title="All 2 branches covered.">            for (int testIndex = 0; testIndex &lt; numTests; testIndex++) {</span>
+<span class="fc" id="L42">                String suffix = testSuffixes[testIndex];</span>
+                
+<span class="fc" id="L44">                AnnotationSpec testAnnotation = AnnotationSpec.builder(ClassName.get(&quot;org.junit.jupiter.api&quot;, &quot;Test&quot;)).build();</span>
+<span class="fc" id="L45">                MethodSpec.Builder testMethod = MethodSpec.methodBuilder(&quot;test_&quot; + method.getMethodName() + suffix)</span>
+<span class="fc" id="L46">                        .addModifiers(Modifier.PUBLIC)</span>
+<span class="fc" id="L47">                        .addAnnotation(testAnnotation)</span>
+<span class="fc" id="L48">                        .returns(void.class);</span>
+                        
+<span class="fc" id="L50">                testMethod.addComment(&quot;Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh&quot;);</span>
+                
+<span class="fc" id="L52">                String instanceName = decapitalize(className);</span>
+<span class="fc" id="L53">                testMethod.addStatement(&quot;$T $L = new $T()&quot;, classUnderTest, instanceName, classUnderTest);</span>
+                
+<span class="fc" id="L55">                StringBuilder argList = new StringBuilder();</span>
+<span class="fc" id="L56">                List&lt;ParameterModel&gt; params = method.getParameters();</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">                for (int i = 0; i &lt; params.size(); i++) {</span>
+<span class="fc" id="L58">                    ParameterModel p = params.get(i);</span>
+<span class="fc" id="L59">                    TypeName pType = typeNameFromString(p.getParamType());</span>
+<span class="fc" id="L60">                    String varName = p.getParamName();</span>
+                    
+                    // Lấy giá trị thông minh dựa vào Test Case (0, Số Dương, Số Âm)
+<span class="fc" id="L63">                    CodeBlock val = valueForType(p.getParamType(), testIndex);</span>
+<span class="fc" id="L64">                    testMethod.addStatement(&quot;$T $L = $L&quot;, pType, varName, val);</span>
+                    
+<span class="fc bfc" id="L66" title="All 2 branches covered.">                    if (i &gt; 0) argList.append(&quot;, &quot;);</span>
+<span class="fc" id="L67">                    argList.append(varName);</span>
+                }
+                
+<span class="fc" id="L70">                String callExpr = instanceName + &quot;.&quot; + method.getMethodName() + &quot;(&quot; + argList.toString() + &quot;)&quot;;</span>
+                
+                // Đưa vào khối Try-Catch để code không bị văng lỗi khi test ngoại lệ (vd: chia cho 0)
+<span class="fc" id="L73">                testMethod.beginControlFlow(&quot;try&quot;);</span>
+                
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">                if (&quot;void&quot;.equals(method.getReturnType())) {</span>
+<span class="nc" id="L76">                    testMethod.addStatement(&quot;$L&quot;, callExpr);</span>
+                } else {
+<span class="fc" id="L78">                    TypeName retType = typeNameFromString(method.getReturnType());</span>
+<span class="fc" id="L79">                    testMethod.addStatement(&quot;$T actual = $L&quot;, retType, callExpr);</span>
+<span class="fc" id="L80">                    testMethod.addComment(&quot;Đảm bảo hàm chạy không văng lỗi và có trả về kết quả&quot;);</span>
+<span class="fc" id="L81">                    testMethod.addStatement(&quot;$T.assertNotNull(actual)&quot;, ClassName.get(&quot;org.junit.jupiter.api&quot;, &quot;Assertions&quot;));</span>
+                }
+                
+<span class="fc" id="L84">                testMethod.nextControlFlow(&quot;catch ($T e)&quot;, Exception.class);</span>
+<span class="fc" id="L85">                testMethod.addComment(&quot;Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ&quot;);</span>
+<span class="fc" id="L86">                testMethod.endControlFlow();</span>
+                
+<span class="fc" id="L88">                testClassBuilder.addMethod(testMethod.build());</span>
+            }
+<span class="fc" id="L90">        }</span>
+        
+<span class="fc" id="L92">        JavaFile javaFile = JavaFile.builder(testPackage, testClassBuilder.build()).build();</span>
+<span class="fc" id="L93">        javaFile.writeTo(Paths.get(outputDir));</span>
+<span class="fc" id="L94">    }</span>
 
     /**
-     * Generate a single test class file under outputDir.
-     *
-     * @param testPackage package for generated test class (e.g. com.doantn.tests)
-     * @param classPackage package of class under test (e.g. com.doantn.app)
-     * @param className simple name of class under test (e.g. App)
-     * @param method metadata for the method to test
-     * @param outputDir directory where generated .java will be written (e.g. &quot;src/test/java&quot;)
+     * Thuật toán sinh dữ liệu thông minh (Boundary Value Analysis)
      */
-    public static void generateTest(String testPackage,
-                                    String classPackage,
-                                    String className,
-                                    MethodModel method,
-                                    String outputDir) throws Exception {
-
-<span class="fc" id="L60">        ClassName classUnderTest = ClassName.get(classPackage, className);</span>
-
-<span class="fc" id="L62">        String testClassName = className + &quot;Test&quot;;</span>
-
-        // Build test method
-<span class="fc" id="L65">        AnnotationSpec testAnnotation = AnnotationSpec.builder(ClassName.get(&quot;org.junit.jupiter.api&quot;, &quot;Test&quot;)).build();</span>
-
-<span class="fc" id="L67">        MethodSpec.Builder testMethod = MethodSpec.methodBuilder(&quot;test_&quot; + method.name)</span>
-<span class="fc" id="L68">                .addModifiers(Modifier.PUBLIC)</span>
-<span class="fc" id="L69">                .addAnnotation(testAnnotation)</span>
-<span class="fc" id="L70">                .returns(void.class);</span>
-
-        // TODO: Auto-generated note for developers
-<span class="fc" id="L73">        testMethod.addComment(&quot;TODO: This test was auto-generated.&quot;);</span>
-<span class="fc" id="L74">        testMethod.addComment(&quot;Please verify the default expected values and input data.&quot;);</span>
-
-        // Instantiate class under test
-<span class="fc" id="L77">        String instanceName = decapitalize(className);</span>
-<span class="fc" id="L78">        testMethod.addStatement(&quot;$T $L = new $T()&quot;, classUnderTest, instanceName, classUnderTest);</span>
-
-        // Prepare parameters with default values
-<span class="fc" id="L81">        StringBuilder argList = new StringBuilder();</span>
-<span class="fc bfc" id="L82" title="All 2 branches covered.">        for (int i = 0; i &lt; method.params.size(); i++) {</span>
-<span class="fc" id="L83">            ParamModel p = method.params.get(i);</span>
-<span class="fc" id="L84">            TypeName pType = typeNameFromString(p.type);</span>
-<span class="fc" id="L85">            String varName = p.name;</span>
-<span class="fc" id="L86">            CodeBlock defaultVal = defaultValueForType(p.type);</span>
-<span class="fc" id="L87">            testMethod.addStatement(&quot;$T $L = $L&quot;, pType, varName, defaultVal);</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">            if (i &gt; 0) argList.append(&quot;, &quot;);</span>
-<span class="fc" id="L89">            argList.append(varName);</span>
-        }
-
-        // Call method and assert based on return type
-<span class="fc" id="L93">        String callExpr = instanceName + &quot;.&quot; + method.name + &quot;(&quot; + argList.toString() + &quot;)&quot;;</span>
-
-<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (&quot;void&quot;.equals(method.returnType)) {</span>
-            // For void methods, assertDoesNotThrow
-<span class="nc" id="L97">            testMethod.addStatement(&quot;$T.assertDoesNotThrow(() -&gt; $L)&quot;,</span>
-<span class="nc" id="L98">                    ClassName.get(&quot;org.junit.jupiter.api&quot;, &quot;Assertions&quot;), callExpr);</span>
-        } else {
-<span class="fc" id="L100">            TypeName retType = typeNameFromString(method.returnType);</span>
-<span class="fc" id="L101">            CodeBlock expectedVal = defaultValueForType(method.returnType);</span>
-
-            // declare expected
-<span class="fc" id="L104">            testMethod.addStatement(&quot;$T expected = $L&quot;, retType, expectedVal);</span>
-            // call actual
-<span class="fc" id="L106">            testMethod.addStatement(&quot;$T actual = $L&quot;, retType, callExpr);</span>
-            // Assertions.assertEquals(expected, actual)
-<span class="fc" id="L108">            testMethod.addStatement(&quot;$T.assertEquals(expected, actual)&quot;,</span>
-<span class="fc" id="L109">                    ClassName.get(&quot;org.junit.jupiter.api&quot;, &quot;Assertions&quot;));</span>
-        }
-
-<span class="fc" id="L112">        TypeSpec testClass = TypeSpec.classBuilder(testClassName)</span>
-<span class="fc" id="L113">                .addModifiers(Modifier.PUBLIC)</span>
-<span class="fc" id="L114">                .addMethod(testMethod.build())</span>
-<span class="fc" id="L115">                .build();</span>
-
-<span class="fc" id="L117">        JavaFile javaFile = JavaFile.builder(testPackage, testClass)</span>
-<span class="fc" id="L118">                .build();</span>
-
-<span class="fc" id="L120">        javaFile.writeTo(Paths.get(outputDir));</span>
-<span class="fc" id="L121">    }</span>
-
-    private static CodeBlock defaultValueForType(String type) {
-<span class="pc bpc" id="L124" title="8 of 10 branches missed.">        switch (type) {</span>
-<span class="fc" id="L125">            case &quot;int&quot;: return CodeBlock.of(&quot;0&quot;);</span>
-<span class="nc" id="L126">            case &quot;long&quot;: return CodeBlock.of(&quot;0L&quot;);</span>
-<span class="fc" id="L127">            case &quot;double&quot;: return CodeBlock.of(&quot;0.0&quot;);</span>
-<span class="nc" id="L128">            case &quot;float&quot;: return CodeBlock.of(&quot;0.0f&quot;);</span>
-<span class="nc" id="L129">            case &quot;short&quot;: return CodeBlock.of(&quot;(short)0&quot;);</span>
-<span class="nc" id="L130">            case &quot;byte&quot;: return CodeBlock.of(&quot;(byte)0&quot;);</span>
-<span class="nc" id="L131">            case &quot;char&quot;: return CodeBlock.of(&quot;'\\u0000'&quot;);</span>
-<span class="nc" id="L132">            case &quot;boolean&quot;: return CodeBlock.of(&quot;false&quot;);</span>
+    private static CodeBlock valueForType(String type, int testCaseIndex) {
+<span class="pc bpc" id="L100" title="8 of 10 branches missed.">        switch (type) {</span>
+            case &quot;int&quot;: 
+<span class="fc bfc" id="L102" title="All 2 branches covered.">                if (testCaseIndex == 1) return CodeBlock.of(&quot;5&quot;); // Giá trị dương</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">                if (testCaseIndex == 2) return CodeBlock.of(&quot;-5&quot;); // Giá trị âm</span>
+<span class="fc" id="L104">                return CodeBlock.of(&quot;0&quot;); // Giá trị 0</span>
+            case &quot;long&quot;: 
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                if (testCaseIndex == 1) return CodeBlock.of(&quot;5L&quot;);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                if (testCaseIndex == 2) return CodeBlock.of(&quot;-5L&quot;);</span>
+<span class="nc" id="L108">                return CodeBlock.of(&quot;0L&quot;);</span>
+            case &quot;double&quot;: 
+<span class="fc bfc" id="L110" title="All 2 branches covered.">                if (testCaseIndex == 1) return CodeBlock.of(&quot;5.0&quot;);</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">                if (testCaseIndex == 2) return CodeBlock.of(&quot;-5.0&quot;);</span>
+<span class="fc" id="L112">                return CodeBlock.of(&quot;0.0&quot;);</span>
+            case &quot;float&quot;: 
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                if (testCaseIndex == 1) return CodeBlock.of(&quot;5.0f&quot;);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                if (testCaseIndex == 2) return CodeBlock.of(&quot;-5.0f&quot;);</span>
+<span class="nc" id="L116">                return CodeBlock.of(&quot;0.0f&quot;);</span>
+<span class="nc" id="L117">            case &quot;short&quot;: return CodeBlock.of(&quot;(short)0&quot;);</span>
+<span class="nc" id="L118">            case &quot;byte&quot;: return CodeBlock.of(&quot;(byte)0&quot;);</span>
+<span class="nc" id="L119">            case &quot;char&quot;: return CodeBlock.of(&quot;'\\u0000'&quot;);</span>
+            case &quot;boolean&quot;: 
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                if (testCaseIndex == 1) return CodeBlock.of(&quot;true&quot;);</span>
+<span class="nc" id="L122">                return CodeBlock.of(&quot;false&quot;);</span>
             case &quot;java.lang.String&quot;:
-<span class="nc" id="L134">            case &quot;String&quot;: return CodeBlock.of(&quot;\&quot;\&quot;&quot; );</span>
+            case &quot;String&quot;: 
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                if (testCaseIndex == 1) return CodeBlock.of(&quot;\&quot;positive\&quot;&quot;);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                if (testCaseIndex == 2) return CodeBlock.of(&quot;\&quot;negative\&quot;&quot;);</span>
+<span class="nc" id="L127">                return CodeBlock.of(&quot;\&quot;\&quot;&quot;);</span>
             default:
-                // For objects, use null
-<span class="nc" id="L137">                return CodeBlock.of(&quot;($L) null&quot;, type);</span>
+<span class="nc" id="L129">                return CodeBlock.of(&quot;($L) null&quot;, type);</span>
         }
     }
 
     private static TypeName typeNameFromString(String type) {
-<span class="pc bpc" id="L142" title="9 of 11 branches missed.">        switch (type) {</span>
-<span class="fc" id="L143">            case &quot;int&quot;: return TypeName.INT;</span>
-<span class="nc" id="L144">            case &quot;long&quot;: return TypeName.LONG;</span>
-<span class="fc" id="L145">            case &quot;double&quot;: return TypeName.DOUBLE;</span>
-<span class="nc" id="L146">            case &quot;float&quot;: return TypeName.FLOAT;</span>
-<span class="nc" id="L147">            case &quot;short&quot;: return TypeName.SHORT;</span>
-<span class="nc" id="L148">            case &quot;byte&quot;: return TypeName.BYTE;</span>
-<span class="nc" id="L149">            case &quot;char&quot;: return TypeName.CHAR;</span>
-<span class="nc" id="L150">            case &quot;boolean&quot;: return TypeName.BOOLEAN;</span>
-<span class="nc" id="L151">            case &quot;void&quot;: return TypeName.VOID.box();</span>
+<span class="pc bpc" id="L134" title="9 of 11 branches missed.">        switch (type) {</span>
+<span class="fc" id="L135">            case &quot;int&quot;: return TypeName.INT;</span>
+<span class="nc" id="L136">            case &quot;long&quot;: return TypeName.LONG;</span>
+<span class="fc" id="L137">            case &quot;double&quot;: return TypeName.DOUBLE;</span>
+<span class="nc" id="L138">            case &quot;float&quot;: return TypeName.FLOAT;</span>
+<span class="nc" id="L139">            case &quot;short&quot;: return TypeName.SHORT;</span>
+<span class="nc" id="L140">            case &quot;byte&quot;: return TypeName.BYTE;</span>
+<span class="nc" id="L141">            case &quot;char&quot;: return TypeName.CHAR;</span>
+<span class="nc" id="L142">            case &quot;boolean&quot;: return TypeName.BOOLEAN;</span>
+<span class="nc" id="L143">            case &quot;void&quot;: return TypeName.VOID.box();</span>
             case &quot;String&quot;:
-<span class="nc" id="L153">            case &quot;java.lang.String&quot;: return ClassName.get(&quot;java.lang&quot;, &quot;String&quot;);</span>
+<span class="nc" id="L145">            case &quot;java.lang.String&quot;: return ClassName.get(&quot;java.lang&quot;, &quot;String&quot;);</span>
             default:
-                // best guess for fully-qualified or simple names
-<span class="nc" id="L156">                return ClassName.bestGuess(type);</span>
+                try {
+<span class="nc" id="L148">                    return ClassName.bestGuess(type);</span>
+<span class="nc" id="L149">                } catch (Exception e) {</span>
+<span class="nc" id="L150">                    return ClassName.OBJECT;</span>
+                }
         }
     }
 
     private static String decapitalize(String s) {
-<span class="pc bpc" id="L161" title="2 of 4 branches missed.">        if (s == null || s.isEmpty()) return s;</span>
-<span class="fc" id="L162">        return Character.toLowerCase(s.charAt(0)) + s.substring(1);</span>
+<span class="pc bpc" id="L156" title="2 of 4 branches missed.">        if (s == null || s.isEmpty()) return s;</span>
+<span class="fc" id="L157">        return Character.toLowerCase(s.charAt(0)) + s.substring(1);</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
