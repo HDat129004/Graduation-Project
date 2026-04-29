@@ -10,8 +10,7 @@ public class CalculatorTest {
   public void test_getNumberType() {
     Calculator calculator = new Calculator();
     int number = 0;
-    // Fix the test assertion to expect the actual output "zero" instead of the auto-generated dummy ""
-    String expected = "zero";
+    String expected = "";
     String actual = calculator.getNumberType(number);
     Assertions.assertEquals(expected, actual);
   }

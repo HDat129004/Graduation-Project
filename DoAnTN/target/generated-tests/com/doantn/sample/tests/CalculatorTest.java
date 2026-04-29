@@ -1,188 +1,19 @@
 package com.doantn.sample.tests;
 
 import com.doantn.sample.Calculator;
-import java.lang.Exception;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class CalculatorTest {
   @Test
-  public void test_add_withZero() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    int a = 0;
-    int b = 0;
-    try {
-      int actual = calculator.add(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_add_withPositive() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    int a = 5;
-    int b = 5;
-    try {
-      int actual = calculator.add(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_add_withNegative() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    int a = -5;
-    int b = -5;
-    try {
-      int actual = calculator.add(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_subtract_withZero() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    int a = 0;
-    int b = 0;
-    try {
-      int actual = calculator.subtract(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_subtract_withPositive() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    int a = 5;
-    int b = 5;
-    try {
-      int actual = calculator.subtract(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_subtract_withNegative() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    int a = -5;
-    int b = -5;
-    try {
-      int actual = calculator.subtract(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_multiply_withZero() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    int a = 0;
-    int b = 0;
-    try {
-      int actual = calculator.multiply(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_multiply_withPositive() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    int a = 5;
-    int b = 5;
-    try {
-      int actual = calculator.multiply(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_multiply_withNegative() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    int a = -5;
-    int b = -5;
-    try {
-      int actual = calculator.multiply(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_divide_withZero() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
+  public void test_divide() {
+    // TODO: This test was auto-generated.
+    // Please verify the default expected values and input data.
     Calculator calculator = new Calculator();
     double a = 0.0;
     double b = 0.0;
-    try {
-      double actual = calculator.divide(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_divide_withPositive() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    double a = 5.0;
-    double b = 5.0;
-    try {
-      double actual = calculator.divide(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
-  }
-
-  @Test
-  public void test_divide_withNegative() {
-    // Kỹ thuật: Phân tích giá trị biên (Boundary Value Analysis) để tăng độ phủ nhánh
-    Calculator calculator = new Calculator();
-    double a = -5.0;
-    double b = -5.0;
-    try {
-      double actual = calculator.divide(a, b);
-      // Đảm bảo hàm chạy không văng lỗi và có trả về kết quả
-      Assertions.assertNotNull(actual);
-    } catch (Exception e) {
-      // Bắt lỗi (ví dụ: Exception chia cho 0) để hệ thống vẫn đi tiếp và ghi nhận độ phủ
-    }
+    double expected = 0.0;
+    double actual = calculator.divide(a, b);
+    Assertions.assertEquals(expected, actual);
   }
 }

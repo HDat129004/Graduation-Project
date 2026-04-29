@@ -1,95 +1,118 @@
 package com.doantn.generator;
 
 import com.doantn.model.ClassModel;
+import com.doantn.model.MethodModel;
+import com.doantn.model.ParameterModel;
+
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
 /**
- * TestGenerator: Module điều phối việc sinh mã Test.
- * 
- * Trách nhiệm:
- * - Nhận các đối tượng Model từ Analyzer.
- * - Gọi đến JavaPoetTestGenerator để thực hiện việc viết code (Thuật toán AST).
- * - MỚI: Gọi đến AITestGenerator để thực hiện việc viết code bằng Trí tuệ nhân tạo (Gemini).
+ * TestGenerator: uses JavaPoet to create Java test sources based on the analyzed model.
+ * Responsibilities:
+ * - Accept model objects (from analyzer)
+ * - Build JUnit test classes (methods, imports, assertions)
+ * - Emit .java files under a configurable output directory (e.g. target/generated-tests)
  */
 public class TestGenerator {
 
-    private final String outputDir;
-    private final AITestGenerator aiGenerator;
+    private String outputDir;
+
+    public TestGenerator() {
+        this("target/generated-tests");
+    }
 
     public TestGenerator(String outputDir) {
         this.outputDir = outputDir;
-        this.aiGenerator = new AITestGenerator(outputDir);
-        
-        // Tạo thư mục đầu ra nếu nó chưa tồn tại
+        // Create output directory if it doesn't exist
         try {
             Files.createDirectories(Paths.get(outputDir));
         } catch (Exception e) {
-            System.err.println("[LỖI] Không thể tạo thư mục đầu ra: " + e.getMessage());
+            System.err.println("Failed to create output directory: " + e.getMessage());
         }
     }
 
     /**
-     * Sinh test cho một ClassModel duy nhất.
+     * Generate tests for a ClassModel
+     * @param classModel The analyzed class model
      */
     public void generateTests(ClassModel classModel) {
         if (classModel == null) {
-            System.err.println("[LỖI] ClassModel bị null, không thể sinh test.");
+            System.err.println("ClassModel is null");
             return;
         }
 
         String packageName = classModel.getPackageName();
         String className = classModel.getClassName();
+        List<MethodModel> methods = classModel.getMethods();
 
-        System.out.println("[THÔNG TIN] Đang sinh bộ test cho Class: " + className);
+        System.out.println("[INFO] Generating tests for: " + className);
 
-        if (classModel.getMethods().isEmpty()) {
-            System.out.println("[CẢNH BÁO] Không tìm thấy hàm public nào để test trong class: " + className);
+        if (methods.isEmpty()) {
+            System.out.println("[WARN] No public methods found to test in: " + className);
             return;
         }
 
-        try {
-            // Xác định package cho file test
-            String testPackage = packageName.equals("(default)") ?
-                    "com.doantn.generated.tests" :
-                    packageName + ".tests";
+        for (MethodModel method : methods) {
+            try {
+                String testPackage = packageName.equals("(default)") ?
+                        "com.doantn.generated.tests" :
+                        packageName + ".tests";
 
-            // 1. SINH TEST BẰNG THUẬT TOÁN AST TRUYỀN THỐNG (JavaPoet)
-            JavaPoetTestGenerator.generateTestClass(
-                    classModel,
-                    testPackage,
-                    outputDir
-            );
-            System.out.println("[OK] Đã sinh file test bằng AST (JavaPoet) cho: " + className);
+                // Convert model to JavaPoetTestGenerator format
+                var params = convertParameters(method.getParameters());
 
-            // 2. SINH TEST BẰNG TRÍ TUỆ NHÂN TẠO (AI Gemini)
-            // Tính năng này dùng để lấy kết quả so sánh với thuật toán truyền thống
-            aiGenerator.generateTestUsingAI(
-                    classModel.getFilePath(), 
-                    className, 
-                    packageName
-            );
+                JavaPoetTestGenerator.generateTest(
+                        testPackage,
+                        packageName,
+                        className,
+                        new JavaPoetTestGenerator.MethodModel(
+                                method.getMethodName(),
+                                method.getReturnType(),
+                                params
+                        ),
+                        outputDir
+                );
 
-        } catch (Exception e) {
-            System.err.println("[LỖI] Không thể sinh test cho class " + className + ": " + e.getMessage());
-            e.printStackTrace();
+                System.out.println("[OK] Generated test for: " + className + "." + method.getMethodName());
+
+            } catch (Exception e) {
+                System.err.println("[ERROR] Failed to generate test for " + method.getMethodName() + ": " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
     /**
-     * Sinh test cho một danh sách các Class.
+     * Generate tests for multiple classes
+     * @param classModels List of analyzed class models
      */
     public void generateTests(List<ClassModel> classModels) {
         if (classModels == null || classModels.isEmpty()) {
-            System.out.println("[CẢNH BÁO] Không có class nào để sinh test.");
+            System.out.println("[WARN] No class models to generate tests for");
             return;
         }
 
-        System.out.println("[THÔNG TIN] Chuẩn bị sinh test cho " + classModels.size() + " class.");
+        System.out.println("[INFO] Generating tests for " + classModels.size() + " classes");
         for (ClassModel classModel : classModels) {
             generateTests(classModel);
         }
-        System.out.println("[THÔNG TIN] Hoàn tất sinh test. Kết quả được lưu tại: " + outputDir);
+        System.out.println("[INFO] Test generation completed. Output: " + outputDir);
+    }
+
+    private List<JavaPoetTestGenerator.ParamModel> convertParameters(List<ParameterModel> params) {
+        return params.stream()
+                .map(p -> new JavaPoetTestGenerator.ParamModel(p.getParamName(), p.getParamType()))
+                .toList();
+    }
+
+    public String getOutputDir() {
+        return outputDir;
+    }
+
+    public void setOutputDir(String outputDir) {
+        this.outputDir = outputDir;
     }
 }
