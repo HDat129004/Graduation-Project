@@ -2,97 +2,71 @@ package com.doantn.example.tests;
 
 import com.doantn.example.Calculator;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CalculatorAITest {
 
-    private Calculator calculator;
+    private final Calculator calculator = new Calculator();
 
-    @BeforeEach
-    public void setUp() {
-        calculator = new Calculator();
+    @Test
+    void testAdd() {
+        assertEquals(5, calculator.add(2, 3));
+        assertEquals(-1, calculator.add(2, -3));
+        assertEquals(0, calculator.add(0, 0));
     }
 
     @Test
-    public void testAdd() {
-        int result = calculator.add(5, 3);
-        assertEquals(8, result);
+    void testSubtract() {
+        assertEquals(-1, calculator.subtract(2, 3));
+        assertEquals(5, calculator.subtract(2, -3));
+        assertEquals(0, calculator.subtract(0, 0));
     }
 
     @Test
-    public void testAddNegativeNumbers() {
-        int result = calculator.add(-2, -3);
-        assertEquals(-5, result);
+    void testMultiply() {
+        assertEquals(6, calculator.multiply(2, 3));
+        assertEquals(-6, calculator.multiply(2, -3));
+        assertEquals(0, calculator.multiply(5, 0));
     }
 
     @Test
-    public void testSubtract() {
-        int result = calculator.subtract(10, 4);
-        assertEquals(6, result);
+    void testDivide() {
+        assertEquals(2.0, calculator.divide(6.0, 3.0), 0.0001);
+        assertEquals(-2.5, calculator.divide(5.0, -2.0), 0.0001);
     }
 
     @Test
-    public void testSubtractToNegative() {
-        int result = calculator.subtract(4, 10);
-        assertEquals(-6, result);
-    }
-
-    @Test
-    public void testMultiply() {
-        int result = calculator.multiply(4, 5);
-        assertEquals(20, result);
-    }
-
-    @Test
-    public void testMultiplyByZero() {
-        int result = calculator.multiply(10, 0);
-        assertEquals(0, result);
-    }
-
-    @Test
-    public void testDivide() {
-        double result = calculator.divide(10.0, 2.0);
-        assertEquals(5.0, result);
-    }
-
-    @Test
-    public void testDivideByZero() {
-        assertThrows(IllegalArgumentException.class, () -> {
+    void testDivideByZero() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             calculator.divide(10.0, 0.0);
         });
+        assertEquals("Cannot divide by zero", exception.getMessage());
     }
 
     @Test
-    public void testIsPositiveWithPositiveNumber() {
-        assertTrue(calculator.isPositive(5));
+    void testIsPositiveTrue() {
+        assertTrue(calculator.isPositive(1));
+        assertTrue(calculator.isPositive(100));
     }
 
     @Test
-    public void testIsPositiveWithNegativeNumber() {
-        assertFalse(calculator.isPositive(-5));
-    }
-
-    @Test
-    public void testIsPositiveWithZero() {
+    void testIsPositiveFalse() {
         assertFalse(calculator.isPositive(0));
+        assertFalse(calculator.isPositive(-1));
     }
 
     @Test
-    public void testGetNumberTypePositive() {
-        String result = calculator.getNumberType(10);
-        assertEquals("positive", result);
+    void testGetNumberTypePositive() {
+        assertEquals("positive", calculator.getNumberType(5));
     }
 
     @Test
-    public void testGetNumberTypeNegative() {
-        String result = calculator.getNumberType(-10);
-        assertEquals("negative", result);
+    void testGetNumberTypeNegative() {
+        assertEquals("negative", calculator.getNumberType(-5));
     }
 
     @Test
-    public void testGetNumberTypeZero() {
-        String result = calculator.getNumberType(0);
-        assertEquals("zero", result);
+    void testGetNumberTypeZero() {
+        assertEquals("zero", calculator.getNumberType(0));
     }
 }
