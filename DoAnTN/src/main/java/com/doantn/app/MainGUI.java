@@ -10,7 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainGUI extends JFrame {
 
@@ -22,7 +25,7 @@ public class MainGUI extends JFrame {
     private final Color COLOR_BLUE_BTN = new Color(0, 120, 215);
     private final Color COLOR_LOG_BG = new Color(30, 30, 30); // Nền tối cho Terminal
 
-    // Sử dụng Font Segoe UI mặc định của Windows
+    // Sử dụng Font Segoe UI hỗ trợ tiếng Việt tốt nhất trên Windows
     private final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 20);
     private final Font FONT_HEADER = new Font("Segoe UI", Font.BOLD, 14);
     private final Font FONT_NORMAL = new Font("Segoe UI", Font.PLAIN, 13);
@@ -40,7 +43,7 @@ public class MainGUI extends JFrame {
     private JLabel lblStatus;
 
     public MainGUI() {
-        setTitle("DoAnTN - Hệ Thống Tự Động Sinh Unit Test (Windows Edition)");
+        setTitle("DoAnTN - Hệ Thống Tự Động Sinh Unit Test (Phiên bản Windows)");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -59,7 +62,7 @@ public class MainGUI extends JFrame {
         add(mainContent, BorderLayout.CENTER);
         add(buildFooter(), BorderLayout.SOUTH);
 
-        // Chuyển hướng System.out và System.err vào JTextArea
+        // Chuyển hướng System.out và System.err vào JTextArea hỗ trợ UTF-8
         PrintStream printStream = new PrintStream(new TextAreaOutputStream(txtLog), true, StandardCharsets.UTF_8);
         System.setOut(printStream);
         System.setErr(printStream);
@@ -82,7 +85,7 @@ public class MainGUI extends JFrame {
         leftPanel.setPreferredSize(new Dimension(360, 0));
 
         // 1. Khối Chọn File
-        JPanel pnlFile = createWindowsCard("SOURCE FILE");
+        JPanel pnlFile = createWindowsCard("TẬP TIN NGUỒN");
         txtFile = new JTextField();
         txtFile.setEditable(false);
         txtFile.setFont(FONT_NORMAL);
@@ -96,16 +99,14 @@ public class MainGUI extends JFrame {
         fileInputWrapper.add(txtFile, BorderLayout.CENTER);
         fileInputWrapper.add(btnBrowse, BorderLayout.EAST);
 
-        // Cố định chiều cao ô nhập liệu tránh kéo giãn
         fileInputWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         pnlFile.add(fileInputWrapper);
-        // Cố định chiều cao khối Card File
         pnlFile.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
 
         // 2. Khối Cấu hình Phương pháp
         JPanel pnlMethod = createWindowsCard("PHƯƠNG PHÁP SINH TEST");
-        radAST = new JRadioButton("Thuật toán AST (Nhanh, Offline)");
-        radAI = new JRadioButton("Trí tuệ nhân tạo Gemini (Internet)");
+        radAST = new JRadioButton("Thuật toán AST (Nhanh, Ngoại tuyến)");
+        radAI = new JRadioButton("Trí tuệ nhân tạo Gemini (Trực tuyến)");
         radBoth = new JRadioButton("Kết hợp AST & AI (So sánh)");
 
         radAST.setFont(FONT_NORMAL);
@@ -127,14 +128,11 @@ public class MainGUI extends JFrame {
         pnlMethod.add(Box.createVerticalStrut(5));
         pnlMethod.add(radBoth);
 
-        // Cố định chiều cao khối phương pháp
         pnlMethod.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
 
         leftPanel.add(pnlFile);
         leftPanel.add(Box.createVerticalStrut(15));
         leftPanel.add(pnlMethod);
-
-        // Đẩy toàn bộ các khối lên trên cùng, lấp đầy khoảng trống thừa ở dưới
         leftPanel.add(Box.createVerticalGlue());
 
         return leftPanel;
@@ -155,7 +153,6 @@ public class MainGUI extends JFrame {
         btnGenerate.setFocusPainted(false);
         btnGenerate.setPreferredSize(new Dimension(250, 45));
 
-        // Ép Windows cho phép tô màu nền Button
         btnGenerate.setContentAreaFilled(false);
         btnGenerate.setOpaque(true);
         btnGenerate.setBorder(new LineBorder(COLOR_GREEN_BTN.darker(), 2));
@@ -169,18 +166,17 @@ public class MainGUI extends JFrame {
         pnlAction.add(progressBar, BorderLayout.CENTER);
 
         // Test Execution Panel
-        JPanel pnlTestExec = createWindowsCard("THỰC THI TEST");
+        JPanel pnlTestExec = createWindowsCard("THỰC THI KIỂM THỬ");
         pnlTestExec.setLayout(new BorderLayout(10, 0));
 
         cbxTests = new JComboBox<>();
         cbxTests.setFont(FONT_NORMAL);
 
-        JButton btnRunTest = new JButton("Chạy Test Đã Chọn");
+        JButton btnRunTest = new JButton("Chạy Test đã chọn");
         btnRunTest.setFont(FONT_NORMAL);
         btnRunTest.setBackground(COLOR_BLUE_BTN);
         btnRunTest.setForeground(Color.WHITE);
 
-        // Ép Windows cho phép tô màu nền Button
         btnRunTest.setContentAreaFilled(false);
         btnRunTest.setOpaque(true);
         btnRunTest.setBorder(new LineBorder(COLOR_BLUE_BTN.darker(), 1));
@@ -196,7 +192,7 @@ public class MainGUI extends JFrame {
         topActionPanel.add(pnlTestExec, BorderLayout.CENTER);
 
         // Log Panel
-        JPanel pnlLog = createWindowsCard("EXECUTION LOG & OUTPUT");
+        JPanel pnlLog = createWindowsCard("NHẬT KÝ THỰC THI & KẾT QUẢ");
         pnlLog.setLayout(new BorderLayout());
 
         txtLog = new JTextArea();
@@ -215,7 +211,7 @@ public class MainGUI extends JFrame {
         JPanel pnlExtra = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnlExtra.setBackground(COLOR_CARD_BG);
 
-        JButton btnJacoco = new JButton("Xem Báo cáo JaCoCo");
+        JButton btnJacoco = new JButton("Xem báo cáo JaCoCo");
         btnJacoco.setFont(FONT_NORMAL);
         btnJacoco.addActionListener(e -> viewJacocoReport());
 
@@ -250,14 +246,10 @@ public class MainGUI extends JFrame {
         JLabel lblTitle = new JLabel(title);
         lblTitle.setFont(FONT_HEADER);
         lblTitle.setForeground(new Color(50, 50, 50));
-
-        // Ép căn lề trái cho Tiêu đề
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         panel.add(lblTitle);
         panel.add(Box.createVerticalStrut(10));
-
-        // Ép căn lề trái cho cả Card
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         return panel;
@@ -267,6 +259,7 @@ public class MainGUI extends JFrame {
 
     private void browseSourceFile() {
         JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn tập tin nguồn Java");
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -281,15 +274,15 @@ public class MainGUI extends JFrame {
         final String apiKey = (envKey == null) ? "" : envKey;
 
         if (sourcePath.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn Source File.", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn Tập tin nguồn.", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
         if ((radAI.isSelected() || radBoth.isSelected()) && apiKey.isBlank()) {
-            JOptionPane.showMessageDialog(this, "Bạn đã chọn phương pháp cần AI nhưng chưa cấu hình GEMINI_API_KEY.", "Lỗi Cấu Hình", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Bạn đã chọn phương pháp cần AI nhưng chưa cấu hình GEMINI_API_KEY trong biến môi trường.", "Lỗi cấu hình", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        setUIState(false, "Đang sinh test...");
+        setUIState(false, "Đang sinh kiểm thử...");
 
         final TestGenerator.GenerationMode mode = radAST.isSelected() ? TestGenerator.GenerationMode.AST_ONLY :
                 radAI.isSelected() ? TestGenerator.GenerationMode.AI_ONLY :
@@ -298,22 +291,18 @@ public class MainGUI extends JFrame {
         new Thread(() -> {
             try {
                 String modeName = radAST.isSelected() ? "AST" : radAI.isSelected() ? "AI Gemini" : "Kết hợp AST & AI";
-                System.out.println("[INFO] Bắt đầu quy trình với phương pháp: " + modeName);
+                System.out.println("[THÔNG TIN] Bắt đầu quy trình với phương pháp: " + modeName);
                 App.generateTests(sourcePath, outputDir, apiKey, mode);
 
                 SwingUtilities.invokeLater(() -> {
-                    System.out.println("\n[SUCCESS] Hoàn tất quá trình sinh Unit Test!");
+                    System.out.println("\n[THÀNH CÔNG] Hoàn tất quá trình sinh Unit Test!");
                     setUIState(true, "Hoàn tất");
-                    String testFileName = new File(sourcePath).getName().replace(".java", "Test.java");
-                    // Giả định package, cần điều chỉnh cho đúng thực tế
-                    String generatedTestPath = new File(outputDir, "com/doantn/example/tests/" + testFileName).getPath();
-                    cbxTests.addItem(generatedTestPath);
-                    cbxTests.setSelectedIndex(cbxTests.getItemCount() - 1);
+                    populateTestComboBox();
                 });
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> {
-                    System.err.println("\n[ERROR] " + e.getMessage());
-                    setUIState(true, "Lỗi");
+                    System.err.println("\n[LỖI] " + e.getMessage());
+                    setUIState(true, "Lỗi thực thi");
                 });
             }
         }).start();
@@ -322,24 +311,35 @@ public class MainGUI extends JFrame {
     private void runSelectedTest(ActionEvent e) {
         String selectedTestPath = (String) cbxTests.getSelectedItem();
         if (selectedTestPath == null || selectedTestPath.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Không có file test nào được chọn.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Không có tập tin kiểm thử nào được chọn.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        // Chuyển đổi đường dẫn file thành tên class đầy đủ (com.example.MyTest)
-        String className = selectedTestPath.replace(File.separator, ".")
-                .replace("src.test.java.", "")
-                .replace(".java", "");
+        File testFile = new File(selectedTestPath);
+        File projectDir = findMavenProjectRoot(testFile);
+        if (projectDir == null) {
+            projectDir = findMavenProjectRoot(getApplicationDirectory());
+        }
+        if (projectDir == null) {
+            JOptionPane.showMessageDialog(this, "Không tìm thấy pom.xml trong thư mục dự án. Vui lòng chạy ứng dụng từ thư mục chứa pom.xml.", "Lỗi cấu hình", JOptionPane.ERROR_MESSAGE);
+            setUIState(true, "Lỗi chạy kiểm thử");
+            return;
+        }
 
-        setUIState(false, "Đang chạy test...");
-        System.out.println("\n[INFO] Bắt đầu chạy test cho class: " + className);
+        String className = buildTestClassName(testFile, projectDir);
+        final File projectDirFinal = projectDir;
+
+        setUIState(false, "Đang chạy kiểm thử...");
+        System.out.println("\n[THÔNG TIN] Bắt đầu chạy kiểm thử cho lớp: " + className);
 
         new Thread(() -> {
             try {
-                ProcessBuilder pb = new ProcessBuilder("mvn.cmd", "test", "-Dtest=" + className);
+                String mvnCommand = getMavenCommand();
+                ProcessBuilder pb = new ProcessBuilder(mvnCommand, "test", "-Dtest=" + className);
+                pb.directory(projectDirFinal);
                 pb.redirectErrorStream(true);
                 Process process = pb.start();
-                try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()))) {
+                try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         System.out.println(line);
@@ -348,17 +348,17 @@ public class MainGUI extends JFrame {
                 int exitCode = process.waitFor();
                 SwingUtilities.invokeLater(() -> {
                     if (exitCode == 0) {
-                        System.out.println("[SUCCESS] Chạy test hoàn tất.");
-                        setUIState(true, "Chạy test xong");
+                        System.out.println("[THÀNH CÔNG] Chạy kiểm thử hoàn tất.");
+                        setUIState(true, "Chạy kiểm thử xong");
                     } else {
-                        System.err.println("[ERROR] Chạy test thất bại. Exit code: " + exitCode);
-                        setUIState(true, "Test thất bại");
+                        System.err.println("[LỖI] Kiểm thử thất bại. Exit code: " + exitCode);
+                        setUIState(true, "Kiểm thử thất bại");
                     }
                 });
             } catch (IOException | InterruptedException ex) {
                 SwingUtilities.invokeLater(() -> {
-                    System.err.println("[ERROR] " + ex.getMessage());
-                    setUIState(true, "Lỗi chạy test");
+                    System.err.println("[LỖI] " + ex.getMessage());
+                    setUIState(true, "Lỗi chạy kiểm thử");
                 });
             }
         }).start();
@@ -369,14 +369,14 @@ public class MainGUI extends JFrame {
         if (jacocoReport.exists() && Desktop.isDesktopSupported()) {
             try {
                 Desktop.getDesktop().browse(jacocoReport.toURI());
-                System.out.println("[INFO] Đã mở báo cáo JaCoCo trong trình duyệt.");
+                System.out.println("[THÔNG TIN] Đã mở báo cáo JaCoCo trong trình duyệt.");
             } catch (IOException e) {
-                System.err.println("[ERROR] Không thể mở báo cáo JaCoCo: " + e.getMessage());
+                System.err.println("[LỖI] Không thể mở báo cáo JaCoCo: " + e.getMessage());
                 JOptionPane.showMessageDialog(this, "Không thể mở báo cáo JaCoCo.\n" + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         } else {
-            System.err.println("[WARNING] Không tìm thấy báo cáo JaCoCo tại: " + jacocoReport.getAbsolutePath());
-            JOptionPane.showMessageDialog(this, "Không tìm thấy báo cáo JaCoCo.\nHãy chắc chắn rằng bạn đã chạy test trước.", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            System.err.println("[CẢNH BÁO] Không tìm thấy báo cáo JaCoCo tại: " + jacocoReport.getAbsolutePath());
+            JOptionPane.showMessageDialog(this, "Không tìm thấy báo cáo JaCoCo.\nHãy chắc chắn rằng bạn đã chạy kiểm thử trước đó.", "Thông báo", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -392,6 +392,78 @@ public class MainGUI extends JFrame {
         lblStatus.setText("Trạng thái: " + status);
     }
 
+    private List<File> findTestFiles(File dir) {
+        List<File> files = new ArrayList<>();
+        if (dir != null && dir.exists() && dir.isDirectory()) {
+            for (File f : dir.listFiles()) {
+                if (f.isDirectory()) {
+                    files.addAll(findTestFiles(f));
+                } else if (f.getName().endsWith(".java")) {
+                    files.add(f);
+                }
+            }
+        }
+        return files;
+    }
+
+    private void populateTestComboBox() {
+        cbxTests.removeAllItems();
+        File projectRoot = findMavenProjectRoot(getApplicationDirectory());
+        File testDir = null;
+        if (projectRoot != null) {
+            testDir = new File(projectRoot, "src/test/java/com/doantn");
+        }
+        if (testDir == null || !testDir.exists() || !testDir.isDirectory()) {
+            testDir = new File("src/test/java/com/doantn");
+        }
+
+        List<File> testFiles = findTestFiles(testDir);
+        for (File file : testFiles) {
+            cbxTests.addItem(file.getPath());
+        }
+
+        if (cbxTests.getItemCount() > 0) {
+            cbxTests.setSelectedIndex(0);
+        }
+    }
+
+    private File findMavenProjectRoot(File startDir) {
+        File current = (startDir == null) ? null : startDir.getAbsoluteFile();
+        while (current != null) {
+            if (new File(current, "pom.xml").isFile()) {
+                return current;
+            }
+            current = current.getParentFile();
+        }
+        return null;
+    }
+
+    private String getMavenCommand() {
+        return System.getProperty("os.name").toLowerCase().contains("win") ? "mvn.cmd" : "mvn";
+    }
+
+    private File getApplicationDirectory() {
+        try {
+            File location = new File(MainGUI.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            return location.isDirectory() ? location : location.getParentFile();
+        } catch (URISyntaxException e) {
+            return new File(System.getProperty("user.dir"));
+        }
+    }
+
+    private String buildTestClassName(File testFile, File projectDir) {
+        String testRootMarker = projectDir.getAbsolutePath() + File.separator + "src" + File.separator + "test" + File.separator + "java" + File.separator;
+        String path = testFile.getAbsolutePath();
+        if (path.startsWith(testRootMarker)) {
+            path = path.substring(testRootMarker.length());
+        }
+        path = path.replace(File.separatorChar, '.');
+        if (path.endsWith(".java")) {
+            path = path.substring(0, path.length() - 5);
+        }
+        return path;
+    }
+
     private static class TextAreaOutputStream extends OutputStream {
         private final JTextArea textArea;
         public TextAreaOutputStream(JTextArea textArea) { this.textArea = textArea; }
@@ -402,13 +474,21 @@ public class MainGUI extends JFrame {
                 textArea.setCaretPosition(textArea.getDocument().getLength());
             });
         }
+        // Ghi đè phương thức write mảng byte để xử lý Unicode (tiếng Việt) từ System.out
+        @Override
+        public void write(byte[] b, int off, int len) {
+            String s = new String(b, off, len, StandardCharsets.UTF_8);
+            SwingUtilities.invokeLater(() -> {
+                textArea.append(s);
+                textArea.setCaretPosition(textArea.getDocument().getLength());
+            });
+        }
     }
 
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (Exception e) {
-            // Fallback to default if Windows L&F is not available
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception ex) {

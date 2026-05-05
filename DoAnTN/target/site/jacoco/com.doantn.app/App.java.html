@@ -12,119 +12,173 @@ import java.util.List;
  */
 <span class="nc" id="L13">public class App {</span>
     public static void main(String[] args) {
-<span class="fc" id="L15">        System.out.println(&quot;========================================&quot;);</span>
-<span class="fc" id="L16">        System.out.println(&quot;DoAnTN - Auto-generate Unit Tests v0.1.0&quot;);</span>
-<span class="fc" id="L17">        System.out.println(&quot;========================================&quot;);</span>
-<span class="fc" id="L18">        System.out.println();</span>
+<span class="nc" id="L15">        System.out.println(&quot;========================================&quot;);</span>
+<span class="nc" id="L16">        System.out.println(&quot;DoAnTN - Auto-generate Unit Tests v0.1.0&quot;);</span>
+<span class="nc" id="L17">        System.out.println(&quot;========================================&quot;);</span>
+<span class="nc" id="L18">        System.out.println();</span>
 
         String sourcePath;
         String outputDir;
+<span class="nc bnc" id="L22" title="All 2 branches missed.">        String apiKey = System.getenv(&quot;GEMINI_API_KEY&quot;) != null ? System.getenv(&quot;GEMINI_API_KEY&quot;) : &quot;&quot;;</span>
+<span class="nc" id="L23">        String modeArg = &quot;both&quot;;</span>
 
         // DEBUG: Print received arguments
-<span class="fc" id="L24">        System.out.println(&quot;[DEBUG] Arguments received: &quot; + args.length);</span>
-<span class="fc bfc" id="L25" title="All 2 branches covered.">        for (int i = 0; i &lt; args.length; i++) {</span>
-<span class="fc" id="L26">            System.out.println(&quot;[DEBUG] Arg[&quot; + i + &quot;]: &quot; + args[i]);</span>
+<span class="nc" id="L26">        System.out.println(&quot;[DEBUG] Arguments received: &quot; + args.length);</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="nc" id="L28">            System.out.println(&quot;[DEBUG] Arg[&quot; + i + &quot;]: &quot; + args[i]);</span>
         }
 
-<span class="pc bpc" id="L29" title="1 of 2 branches missed.">        if (args.length &gt; 0) {</span>
-<span class="fc" id="L30">            sourcePath = args[0];</span>
-<span class="pc bpc" id="L31" title="1 of 2 branches missed.">            outputDir = args.length &gt; 1 ? args[1] : &quot;src/test/java&quot;;</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (args.length &gt; 0) {</span>
+<span class="nc" id="L32">            sourcePath = args[0];</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">            outputDir = args.length &gt; 1 ? args[1] : &quot;src/test/java&quot;;</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">            if (args.length &gt; 2) {</span>
+<span class="nc" id="L35">                apiKey = args[2];</span>
+            }
+<span class="nc bnc" id="L37" title="All 2 branches missed.">            if (args.length &gt; 3) {</span>
+<span class="nc" id="L38">                modeArg = args[3];</span>
+            }
         } else {
             // Fallback defaults if no arguments provided
-<span class="nc" id="L34">            System.out.println(&quot;[WARN] No arguments provided. Using default example configuration.&quot;);</span>
+<span class="nc" id="L42">            System.out.println(&quot;[WARN] No arguments provided. Using default example configuration.&quot;);</span>
             // FIX: Make the default path absolute or relative to the DoAnTN module, 
             // handling the case where IDE runs from the root &quot;Graduation-Project&quot; directory.
-<span class="nc" id="L37">            File fallbackFile = new File(&quot;DoAnTN/src/main/java/com/doantn/example/Calculator.java&quot;);</span>
-<span class="nc bnc" id="L38" title="All 2 branches missed.">            if (fallbackFile.exists()) {</span>
-<span class="nc" id="L39">                 sourcePath = &quot;DoAnTN/src/main/java/com/doantn/example/Calculator.java&quot;;</span>
-<span class="nc" id="L40">                 outputDir = &quot;DoAnTN/src/test/java&quot;;</span>
+<span class="nc" id="L45">            File fallbackFile = new File(&quot;DoAnTN/src/main/java/com/doantn/example/Calculator.java&quot;);</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            if (fallbackFile.exists()) {</span>
+<span class="nc" id="L47">                 sourcePath = &quot;DoAnTN/src/main/java/com/doantn/example/Calculator.java&quot;;</span>
+<span class="nc" id="L48">                 outputDir = &quot;DoAnTN/src/test/java&quot;;</span>
             } else {
-<span class="nc" id="L42">                 sourcePath = &quot;src/main/java/com/doantn/example/Calculator.java&quot;;</span>
-<span class="nc" id="L43">                 outputDir = &quot;src/test/java&quot;;</span>
+<span class="nc" id="L50">                 sourcePath = &quot;src/main/java/com/doantn/example/Calculator.java&quot;;</span>
+<span class="nc" id="L51">                 outputDir = &quot;src/test/java&quot;;</span>
             }
             
         }
 
-<span class="fc" id="L48">        File sourceFile = new File(sourcePath);</span>
+<span class="nc" id="L56">        File sourceFile = new File(sourcePath);</span>
         // Try to resolve relative path if file doesn't exist
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        if (!sourceFile.exists()) {</span>
-<span class="nc" id="L51">            File currentDir = new File(&quot;.&quot;);</span>
-<span class="nc" id="L52">            System.out.println(&quot;[INFO] Current working directory: &quot; + currentDir.getAbsolutePath());</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (!sourceFile.exists()) {</span>
+<span class="nc" id="L59">            File currentDir = new File(&quot;.&quot;);</span>
+<span class="nc" id="L60">            System.out.println(&quot;[INFO] Current working directory: &quot; + currentDir.getAbsolutePath());</span>
             
             // Try absolute path based on current dir
-<span class="nc" id="L55">            sourceFile = new File(currentDir, sourcePath);</span>
+<span class="nc" id="L63">            sourceFile = new File(currentDir, sourcePath);</span>
         }
 
-<span class="pc bpc" id="L58" title="1 of 2 branches missed.">        if (!sourceFile.exists()) {</span>
-<span class="nc" id="L59">            System.err.println(&quot;[ERROR] Source path does not exist: &quot; + sourcePath);</span>
-<span class="nc" id="L60">            System.err.println(&quot;[ERROR] Absolute path tried: &quot; + sourceFile.getAbsolutePath());</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (!sourceFile.exists()) {</span>
+<span class="nc" id="L67">            System.err.println(&quot;[ERROR] Source path does not exist: &quot; + sourcePath);</span>
+<span class="nc" id="L68">            System.err.println(&quot;[ERROR] Absolute path tried: &quot; + sourceFile.getAbsolutePath());</span>
             
             // Final desperate attempt for IDEs running from parent project root
-<span class="nc" id="L63">            File desperateAttempt = new File(System.getProperty(&quot;user.dir&quot;) + &quot;/DoAnTN/&quot; + sourcePath.replace(&quot;DoAnTN/&quot;, &quot;&quot;));</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">            if(desperateAttempt.exists()) {</span>
-<span class="nc" id="L65">                 System.out.println(&quot;[INFO] Found file using fallback path: &quot; + desperateAttempt.getAbsolutePath());</span>
-<span class="nc" id="L66">                 sourceFile = desperateAttempt;</span>
+<span class="nc" id="L71">            File desperateAttempt = new File(System.getProperty(&quot;user.dir&quot;) + &quot;/DoAnTN/&quot; + sourcePath.replace(&quot;DoAnTN/&quot;, &quot;&quot;));</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            if(desperateAttempt.exists()) {</span>
+<span class="nc" id="L73">                 System.out.println(&quot;[INFO] Found file using fallback path: &quot; + desperateAttempt.getAbsolutePath());</span>
+<span class="nc" id="L74">                 sourceFile = desperateAttempt;</span>
             } else {
-<span class="nc" id="L68">                 printUsage();</span>
-<span class="nc" id="L69">                 System.exit(2);</span>
+<span class="nc" id="L76">                 printUsage();</span>
+<span class="nc" id="L77">                 System.exit(2);</span>
             }
         }
 
         try {
-<span class="fc" id="L74">            AnalyzerService analyzer = new AnalyzerService();</span>
-<span class="fc" id="L75">            TestGenerator generator = new TestGenerator(outputDir);</span>
+<span class="nc" id="L82">            AnalyzerService analyzer = new AnalyzerService();</span>
+<span class="nc" id="L83">            TestGenerator generator = new TestGenerator(outputDir, apiKey);</span>
+<span class="nc" id="L84">            TestGenerator.GenerationMode mode = parseMode(modeArg);</span>
 
-<span class="fc" id="L77">            System.out.println(&quot;[INFO] Analyzing source: &quot; + sourceFile.getAbsolutePath());</span>
-<span class="fc" id="L78">            System.out.println(&quot;[INFO] Output directory: &quot; + outputDir);</span>
-<span class="fc" id="L79">            System.out.println();</span>
+<span class="nc" id="L86">            System.out.println(&quot;[INFO] Analyzing source: &quot; + sourceFile.getAbsolutePath());</span>
+<span class="nc" id="L87">            System.out.println(&quot;[INFO] Output directory: &quot; + outputDir);</span>
+<span class="nc" id="L88">            System.out.println(&quot;[INFO] Generation mode: &quot; + mode);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (!apiKey.isBlank()) {</span>
+<span class="nc" id="L90">                System.out.println(&quot;[INFO] API key supplied for AI generation.&quot;);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            } else if (mode != TestGenerator.GenerationMode.AST_ONLY) {</span>
+<span class="nc" id="L92">                System.out.println(&quot;[WARN] No API key supplied. AI generation may fail.&quot;);</span>
+            }
+<span class="nc" id="L94">            System.out.println();</span>
 
-<span class="pc bpc" id="L81" title="2 of 4 branches missed.">            if (sourceFile.isFile() &amp;&amp; sourceFile.getName().endsWith(&quot;.java&quot;)) {</span>
+<span class="nc bnc" id="L96" title="All 4 branches missed.">            if (sourceFile.isFile() &amp;&amp; sourceFile.getName().endsWith(&quot;.java&quot;)) {</span>
                 // Single file analysis
-<span class="fc" id="L83">                analyzeAndGenerateForFile(sourceFile.getAbsolutePath(), analyzer, generator);</span>
-<span class="nc bnc" id="L84" title="All 2 branches missed.">            } else if (sourceFile.isDirectory()) {</span>
+<span class="nc" id="L98">                analyzeAndGenerateForFile(sourceFile.getAbsolutePath(), analyzer, generator, mode);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            } else if (sourceFile.isDirectory()) {</span>
                 // Directory analysis
-<span class="nc" id="L86">                analyzeAndGenerateForDirectory(sourceFile.getAbsolutePath(), analyzer, generator);</span>
+<span class="nc" id="L101">                analyzeAndGenerateForDirectory(sourceFile.getAbsolutePath(), analyzer, generator, mode);</span>
             } else {
-<span class="nc" id="L88">                System.err.println(&quot;[ERROR] Invalid source path. Must be a .java file or directory.&quot;);</span>
-<span class="nc" id="L89">                System.exit(3);</span>
+<span class="nc" id="L103">                System.err.println(&quot;[ERROR] Invalid source path. Must be a .java file or directory.&quot;);</span>
+<span class="nc" id="L104">                System.exit(3);</span>
             }
 
-<span class="fc" id="L92">            System.out.println();</span>
-<span class="fc" id="L93">            System.out.println(&quot;========================================&quot;);</span>
-<span class="fc" id="L94">            System.out.println(&quot;[SUCCESS] Test generation completed!&quot;);</span>
-<span class="fc" id="L95">            System.out.println(&quot;========================================&quot;);</span>
+<span class="nc" id="L107">            System.out.println();</span>
+<span class="nc" id="L108">            System.out.println(&quot;========================================&quot;);</span>
+<span class="nc" id="L109">            System.out.println(&quot;[SUCCESS] Test generation completed!&quot;);</span>
+<span class="nc" id="L110">            System.out.println(&quot;========================================&quot;);</span>
 
-<span class="nc" id="L97">        } catch (Exception e) {</span>
-<span class="nc" id="L98">            System.err.println(&quot;[ERROR] Unexpected error: &quot; + e.getMessage());</span>
-<span class="nc" id="L99">            e.printStackTrace();</span>
-<span class="nc" id="L100">            System.exit(4);</span>
-<span class="fc" id="L101">        }</span>
-<span class="fc" id="L102">    }</span>
+<span class="nc" id="L112">        } catch (Exception e) {</span>
+<span class="nc" id="L113">            System.err.println(&quot;[ERROR] Unexpected error: &quot; + e.getMessage());</span>
+<span class="nc" id="L114">            e.printStackTrace();</span>
+<span class="nc" id="L115">            System.exit(4);</span>
+<span class="nc" id="L116">        }</span>
+<span class="nc" id="L117">    }</span>
 
-    private static void analyzeAndGenerateForFile(String filePath, AnalyzerService analyzer, TestGenerator generator) {
-<span class="fc" id="L105">        ClassModel classModel = analyzer.analyze(filePath);</span>
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (classModel != null) {</span>
-<span class="fc" id="L107">            generator.generateTests(classModel);</span>
+    public static void generateTests(String sourcePath, String outputDir, String apiKey, TestGenerator.GenerationMode mode) throws Exception {
+<span class="nc" id="L120">        AnalyzerService analyzer = new AnalyzerService();</span>
+<span class="nc" id="L121">        TestGenerator generator = new TestGenerator(outputDir, apiKey);</span>
+
+<span class="nc" id="L123">        System.out.println(&quot;[INFO] Analyzing source: &quot; + sourcePath);</span>
+<span class="nc" id="L124">        System.out.println(&quot;[INFO] Output directory: &quot; + outputDir);</span>
+<span class="nc" id="L125">        System.out.println(&quot;[INFO] Generation mode: &quot; + mode);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (!apiKey.isBlank()) {</span>
+<span class="nc" id="L127">            System.out.println(&quot;[INFO] API key supplied for AI generation.&quot;);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        } else if (mode != TestGenerator.GenerationMode.AST_ONLY) {</span>
+<span class="nc" id="L129">            System.out.println(&quot;[WARN] No API key supplied. AI generation may fail.&quot;);</span>
         }
-<span class="fc" id="L109">    }</span>
+<span class="nc" id="L131">        System.out.println();</span>
 
-    private static void analyzeAndGenerateForDirectory(String dirPath, AnalyzerService analyzer, TestGenerator generator) {
-<span class="nc" id="L112">        List&lt;ClassModel&gt; classModels = analyzer.analyzeDirectory(dirPath);</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (!classModels.isEmpty()) {</span>
-<span class="nc" id="L114">            System.out.println(&quot;[INFO] Found &quot; + classModels.size() + &quot; Java classes to analyze&quot;);</span>
-<span class="nc" id="L115">            System.out.println();</span>
-<span class="nc" id="L116">            generator.generateTests(classModels);</span>
+<span class="nc" id="L133">        File sourceFile = new File(sourcePath);</span>
+<span class="nc bnc" id="L134" title="All 4 branches missed.">        if (sourceFile.isFile() &amp;&amp; sourceFile.getName().endsWith(&quot;.java&quot;)) {</span>
+            // Single file analysis
+<span class="nc" id="L136">            analyzeAndGenerateForFile(sourcePath, analyzer, generator, mode);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        } else if (sourceFile.isDirectory()) {</span>
+            // Directory analysis
+<span class="nc" id="L139">            analyzeAndGenerateForDirectory(sourcePath, analyzer, generator, mode);</span>
         } else {
-<span class="nc" id="L118">            System.out.println(&quot;[WARN] No Java source files found in: &quot; + dirPath);</span>
+<span class="nc" id="L141">            throw new IllegalArgumentException(&quot;Invalid source path. Must be a .java file or directory.&quot;);</span>
         }
-<span class="nc" id="L120">    }</span>
+<span class="nc" id="L143">    }</span>
+
+    private static void analyzeAndGenerateForFile(String filePath, AnalyzerService analyzer, TestGenerator generator, TestGenerator.GenerationMode mode) {
+<span class="nc" id="L146">        ClassModel classModel = analyzer.analyze(filePath);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (classModel != null) {</span>
+<span class="nc" id="L148">            generator.generateTests(classModel, mode);</span>
+        }
+<span class="nc" id="L150">    }</span>
+
+    private static void analyzeAndGenerateForDirectory(String dirPath, AnalyzerService analyzer, TestGenerator generator, TestGenerator.GenerationMode mode) {
+<span class="nc" id="L153">        List&lt;ClassModel&gt; classModels = analyzer.analyzeDirectory(dirPath);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (!classModels.isEmpty()) {</span>
+<span class="nc" id="L155">            System.out.println(&quot;[INFO] Found &quot; + classModels.size() + &quot; Java classes to analyze&quot;);</span>
+<span class="nc" id="L156">            System.out.println();</span>
+<span class="nc" id="L157">            generator.generateTests(classModels, mode);</span>
+        } else {
+<span class="nc" id="L159">            System.out.println(&quot;[WARN] No Java source files found in: &quot; + dirPath);</span>
+        }
+<span class="nc" id="L161">    }</span>
+
+    private static TestGenerator.GenerationMode parseMode(String modeArg) {
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (&quot;ast&quot;.equalsIgnoreCase(modeArg)) {</span>
+<span class="nc" id="L165">            return TestGenerator.GenerationMode.AST_ONLY;</span>
+        }
+<span class="nc bnc" id="L167" title="All 2 branches missed.">        if (&quot;ai&quot;.equalsIgnoreCase(modeArg)) {</span>
+<span class="nc" id="L168">            return TestGenerator.GenerationMode.AI_ONLY;</span>
+        }
+<span class="nc" id="L170">        return TestGenerator.GenerationMode.BOTH;</span>
+    }
 
     private static void printUsage() {
-<span class="nc" id="L123">        System.out.println(&quot;Usage: java -jar doantn.jar &lt;source-file-or-directory&gt; [output-directory]&quot;);</span>
-<span class="nc" id="L124">        System.out.println();</span>
-<span class="nc" id="L125">        System.out.println(&quot;Arguments:&quot;);</span>
-<span class="nc" id="L126">        System.out.println(&quot;  &lt;source-file-or-directory&gt;  Path to a single .java file or source directory&quot;);</span>
-<span class="nc" id="L127">        System.out.println(&quot;  [output-directory]          Output directory for generated tests (default: src/test/java)&quot;);</span>
-<span class="nc" id="L128">    }</span>
+<span class="nc" id="L174">        System.out.println(&quot;Usage: java -jar doantn.jar &lt;source-file-or-directory&gt; [output-directory] [api-key] [mode]&quot;);</span>
+<span class="nc" id="L175">        System.out.println();</span>
+<span class="nc" id="L176">        System.out.println(&quot;Arguments:&quot;);</span>
+<span class="nc" id="L177">        System.out.println(&quot;  &lt;source-file-or-directory&gt;  Path to a single .java file or source directory&quot;);</span>
+<span class="nc" id="L178">        System.out.println(&quot;  [output-directory]          Output directory for generated tests (default: src/test/java)&quot;);</span>
+<span class="nc" id="L179">        System.out.println(&quot;  [api-key]                   Optional Gemini API key for AI generation&quot;);</span>
+<span class="nc" id="L180">        System.out.println(&quot;  [mode]                      Optional mode: ast, ai, both (default both)&quot;);</span>
+<span class="nc" id="L181">    }</span>
 }
+
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

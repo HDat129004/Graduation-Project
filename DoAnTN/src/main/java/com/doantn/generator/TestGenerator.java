@@ -58,8 +58,8 @@ public class TestGenerator {
         try {
             // Xác định package cho file test
             String testPackage = packageName.equals("(default)") ?
-                    "com.doantn.generated.tests" :
-                    packageName + ".tests";
+                    "com.doantn.generated" :
+                    packageName;
 
             if (mode == GenerationMode.AST_ONLY || mode == GenerationMode.BOTH) {
                 JavaPoetTestGenerator.generateTestClass(

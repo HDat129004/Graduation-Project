@@ -37,7 +37,7 @@ public class AITestGenerator {
 
             // 1. PROMPT: Ép AI viết test thật cơ bản, cấm dùng các hàm phức tạp dễ gây lỗi
             String prompt = "Write a complete JUnit 5 test class for the provided code.\n" +
-                    "Package: " + packageName + ".tests\n" +
+                    "Package: " + packageName + "\n" +
                     "RULES:\n" +
                     "1. Class name MUST be: " + expectedClassName + "\n" +
                     "2. DO NOT use @ParameterizedTest or @MethodSource.\n" +
@@ -65,7 +65,7 @@ public class AITestGenerator {
 
                 // 4. LƯU FILE
                 String testPackageDir = packageName.equals("(default)") ? "" : packageName.replace(".", "/");
-                Path testDirPath = Paths.get(outputDir, testPackageDir, "tests");
+                Path testDirPath = Paths.get(outputDir, testPackageDir);
                 Files.createDirectories(testDirPath);
 
                 Path testFilePath = testDirPath.resolve(expectedClassName + ".java");
