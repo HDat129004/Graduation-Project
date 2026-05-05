@@ -15,12 +15,18 @@ import java.util.List;
  */
 public class TestGenerator {
 
+    public enum GenerationMode {
+        AST_ONLY,
+        AI_ONLY,
+        BOTH
+    }
+
     private final String outputDir;
     private final AITestGenerator aiGenerator;
 
-    public TestGenerator(String outputDir) {
+    public TestGenerator(String outputDir, String apiKey) {
         this.outputDir = outputDir;
-        this.aiGenerator = new AITestGenerator(outputDir);
+        this.aiGenerator = new AITestGenerator(outputDir, apiKey);
         
         // Tạo thư mục đầu ra nếu nó chưa tồn tại
         try {
@@ -33,7 +39,7 @@ public class TestGenerator {
     /**
      * Sinh test cho một ClassModel duy nhất.
      */
-    public void generateTests(ClassModel classModel) {
+    public void generateTests(ClassModel classModel, GenerationMode mode) {
         if (classModel == null) {
             System.err.println("[LỖI] ClassModel bị null, không thể sinh test.");
             return;
@@ -55,21 +61,22 @@ public class TestGenerator {
                     "com.doantn.generated.tests" :
                     packageName + ".tests";
 
-            // 1. SINH TEST BẰNG THUẬT TOÁN AST TRUYỀN THỐNG (JavaPoet)
-            JavaPoetTestGenerator.generateTestClass(
-                    classModel,
-                    testPackage,
-                    outputDir
-            );
-            System.out.println("[OK] Đã sinh file test bằng AST (JavaPoet) cho: " + className);
+            if (mode == GenerationMode.AST_ONLY || mode == GenerationMode.BOTH) {
+                JavaPoetTestGenerator.generateTestClass(
+                        classModel,
+                        testPackage,
+                        outputDir
+                );
+                System.out.println("[OK] Đã sinh file test bằng AST (JavaPoet) cho: " + className);
+            }
 
-            // 2. SINH TEST BẰNG TRÍ TUỆ NHÂN TẠO (AI Gemini)
-            // Tính năng này dùng để lấy kết quả so sánh với thuật toán truyền thống
-            aiGenerator.generateTestUsingAI(
-                    classModel.getFilePath(), 
-                    className, 
-                    packageName
-            );
+            if (mode == GenerationMode.AI_ONLY || mode == GenerationMode.BOTH) {
+                aiGenerator.generateTestUsingAI(
+                        classModel.getFilePath(), 
+                        className, 
+                        packageName
+                );
+            }
 
         } catch (Exception e) {
             System.err.println("[LỖI] Không thể sinh test cho class " + className + ": " + e.getMessage());
@@ -80,7 +87,7 @@ public class TestGenerator {
     /**
      * Sinh test cho một danh sách các Class.
      */
-    public void generateTests(List<ClassModel> classModels) {
+    public void generateTests(List<ClassModel> classModels, GenerationMode mode) {
         if (classModels == null || classModels.isEmpty()) {
             System.out.println("[CẢNH BÁO] Không có class nào để sinh test.");
             return;
@@ -88,7 +95,7 @@ public class TestGenerator {
 
         System.out.println("[THÔNG TIN] Chuẩn bị sinh test cho " + classModels.size() + " class.");
         for (ClassModel classModel : classModels) {
-            generateTests(classModel);
+            generateTests(classModel, mode);
         }
         System.out.println("[THÔNG TIN] Hoàn tất sinh test. Kết quả được lưu tại: " + outputDir);
     }

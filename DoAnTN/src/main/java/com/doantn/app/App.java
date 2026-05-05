@@ -19,6 +19,8 @@ public class App {
 
         String sourcePath;
         String outputDir;
+        String apiKey = System.getenv("GEMINI_API_KEY") != null ? System.getenv("GEMINI_API_KEY") : "";
+        String modeArg = "both";
 
         // DEBUG: Print received arguments
         System.out.println("[DEBUG] Arguments received: " + args.length);
@@ -29,6 +31,12 @@ public class App {
         if (args.length > 0) {
             sourcePath = args[0];
             outputDir = args.length > 1 ? args[1] : "src/test/java";
+            if (args.length > 2) {
+                apiKey = args[2];
+            }
+            if (args.length > 3) {
+                modeArg = args[3];
+            }
         } else {
             // Fallback defaults if no arguments provided
             System.out.println("[WARN] No arguments provided. Using default example configuration.");
@@ -72,18 +80,25 @@ public class App {
 
         try {
             AnalyzerService analyzer = new AnalyzerService();
-            TestGenerator generator = new TestGenerator(outputDir);
+            TestGenerator generator = new TestGenerator(outputDir, apiKey);
+            TestGenerator.GenerationMode mode = parseMode(modeArg);
 
             System.out.println("[INFO] Analyzing source: " + sourceFile.getAbsolutePath());
             System.out.println("[INFO] Output directory: " + outputDir);
+            System.out.println("[INFO] Generation mode: " + mode);
+            if (!apiKey.isBlank()) {
+                System.out.println("[INFO] API key supplied for AI generation.");
+            } else if (mode != TestGenerator.GenerationMode.AST_ONLY) {
+                System.out.println("[WARN] No API key supplied. AI generation may fail.");
+            }
             System.out.println();
 
             if (sourceFile.isFile() && sourceFile.getName().endsWith(".java")) {
                 // Single file analysis
-                analyzeAndGenerateForFile(sourceFile.getAbsolutePath(), analyzer, generator);
+                analyzeAndGenerateForFile(sourceFile.getAbsolutePath(), analyzer, generator, mode);
             } else if (sourceFile.isDirectory()) {
                 // Directory analysis
-                analyzeAndGenerateForDirectory(sourceFile.getAbsolutePath(), analyzer, generator);
+                analyzeAndGenerateForDirectory(sourceFile.getAbsolutePath(), analyzer, generator, mode);
             } else {
                 System.err.println("[ERROR] Invalid source path. Must be a .java file or directory.");
                 System.exit(3);
@@ -101,29 +116,68 @@ public class App {
         }
     }
 
-    private static void analyzeAndGenerateForFile(String filePath, AnalyzerService analyzer, TestGenerator generator) {
-        ClassModel classModel = analyzer.analyze(filePath);
-        if (classModel != null) {
-            generator.generateTests(classModel);
+    public static void generateTests(String sourcePath, String outputDir, String apiKey, TestGenerator.GenerationMode mode) throws Exception {
+        AnalyzerService analyzer = new AnalyzerService();
+        TestGenerator generator = new TestGenerator(outputDir, apiKey);
+
+        System.out.println("[INFO] Analyzing source: " + sourcePath);
+        System.out.println("[INFO] Output directory: " + outputDir);
+        System.out.println("[INFO] Generation mode: " + mode);
+        if (!apiKey.isBlank()) {
+            System.out.println("[INFO] API key supplied for AI generation.");
+        } else if (mode != TestGenerator.GenerationMode.AST_ONLY) {
+            System.out.println("[WARN] No API key supplied. AI generation may fail.");
+        }
+        System.out.println();
+
+        File sourceFile = new File(sourcePath);
+        if (sourceFile.isFile() && sourceFile.getName().endsWith(".java")) {
+            // Single file analysis
+            analyzeAndGenerateForFile(sourcePath, analyzer, generator, mode);
+        } else if (sourceFile.isDirectory()) {
+            // Directory analysis
+            analyzeAndGenerateForDirectory(sourcePath, analyzer, generator, mode);
+        } else {
+            throw new IllegalArgumentException("Invalid source path. Must be a .java file or directory.");
         }
     }
 
-    private static void analyzeAndGenerateForDirectory(String dirPath, AnalyzerService analyzer, TestGenerator generator) {
+    private static void analyzeAndGenerateForFile(String filePath, AnalyzerService analyzer, TestGenerator generator, TestGenerator.GenerationMode mode) {
+        ClassModel classModel = analyzer.analyze(filePath);
+        if (classModel != null) {
+            generator.generateTests(classModel, mode);
+        }
+    }
+
+    private static void analyzeAndGenerateForDirectory(String dirPath, AnalyzerService analyzer, TestGenerator generator, TestGenerator.GenerationMode mode) {
         List<ClassModel> classModels = analyzer.analyzeDirectory(dirPath);
         if (!classModels.isEmpty()) {
             System.out.println("[INFO] Found " + classModels.size() + " Java classes to analyze");
             System.out.println();
-            generator.generateTests(classModels);
+            generator.generateTests(classModels, mode);
         } else {
             System.out.println("[WARN] No Java source files found in: " + dirPath);
         }
     }
 
+    private static TestGenerator.GenerationMode parseMode(String modeArg) {
+        if ("ast".equalsIgnoreCase(modeArg)) {
+            return TestGenerator.GenerationMode.AST_ONLY;
+        }
+        if ("ai".equalsIgnoreCase(modeArg)) {
+            return TestGenerator.GenerationMode.AI_ONLY;
+        }
+        return TestGenerator.GenerationMode.BOTH;
+    }
+
     private static void printUsage() {
-        System.out.println("Usage: java -jar doantn.jar <source-file-or-directory> [output-directory]");
+        System.out.println("Usage: java -jar doantn.jar <source-file-or-directory> [output-directory] [api-key] [mode]");
         System.out.println();
         System.out.println("Arguments:");
         System.out.println("  <source-file-or-directory>  Path to a single .java file or source directory");
         System.out.println("  [output-directory]          Output directory for generated tests (default: src/test/java)");
+        System.out.println("  [api-key]                   Optional Gemini API key for AI generation");
+        System.out.println("  [mode]                      Optional mode: ast, ai, both (default both)");
     }
 }
+

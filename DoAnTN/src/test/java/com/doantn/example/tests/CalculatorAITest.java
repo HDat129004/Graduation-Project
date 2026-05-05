@@ -1,57 +1,73 @@
 package com.doantn.example.tests;
 
-import com.doantn.example.Calculator;
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import com.doantn.example.Calculator;
 
 public class CalculatorAITest {
 
-    private final Calculator calculator = new Calculator();
+    private Calculator calculator;
 
-    @Test
-    void testAdd() {
-        assertEquals(5, calculator.add(2, 3));
-        assertEquals(-1, calculator.add(2, -3));
-        assertEquals(0, calculator.add(0, 0));
+    @BeforeEach
+    void setUp() {
+        calculator = new Calculator();
     }
 
     @Test
-    void testSubtract() {
-        assertEquals(-1, calculator.subtract(2, 3));
-        assertEquals(5, calculator.subtract(2, -3));
-        assertEquals(0, calculator.subtract(0, 0));
+    void testAddPositiveNumbers() {
+        assertEquals(10, calculator.add(7, 3));
     }
 
     @Test
-    void testMultiply() {
-        assertEquals(6, calculator.multiply(2, 3));
-        assertEquals(-6, calculator.multiply(2, -3));
-        assertEquals(0, calculator.multiply(5, 0));
+    void testAddNegativeNumbers() {
+        assertEquals(-10, calculator.add(-7, -3));
     }
 
     @Test
-    void testDivide() {
-        assertEquals(2.0, calculator.divide(6.0, 3.0), 0.0001);
-        assertEquals(-2.5, calculator.divide(5.0, -2.0), 0.0001);
+    void testSubtractPositiveNumbers() {
+        assertEquals(4, calculator.subtract(7, 3));
     }
 
     @Test
-    void testDivideByZero() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+    void testSubtractToNegative() {
+        assertEquals(-4, calculator.subtract(3, 7));
+    }
+
+    @Test
+    void testMultiplyPositiveNumbers() {
+        assertEquals(21, calculator.multiply(7, 3));
+    }
+
+    @Test
+    void testMultiplyByZero() {
+        assertEquals(0, calculator.multiply(7, 0));
+    }
+
+    @Test
+    void testDividePositiveNumbers() {
+        assertEquals(2.5, calculator.divide(5.0, 2.0));
+    }
+
+    @Test
+    void testDivideByZeroThrowsException() {
+        assertThrows(IllegalArgumentException.class, () -> {
             calculator.divide(10.0, 0.0);
         });
-        assertEquals("Cannot divide by zero", exception.getMessage());
     }
 
     @Test
     void testIsPositiveTrue() {
         assertTrue(calculator.isPositive(1));
-        assertTrue(calculator.isPositive(100));
     }
 
     @Test
-    void testIsPositiveFalse() {
+    void testIsPositiveFalseWithZero() {
         assertFalse(calculator.isPositive(0));
+    }
+
+    @Test
+    void testIsPositiveFalseWithNegative() {
         assertFalse(calculator.isPositive(-1));
     }
 

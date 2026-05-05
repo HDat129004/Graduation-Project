@@ -1,5 +1,5 @@
 @echo off
-cd /d "C:\Users\Admin\Desktop\DATN\DoAnTN"
+cd /d "c:\Users\Admin\Desktop\Test Design\Graduation-Project test\DoAnTN"
 
 echo.
 echo ===============================================

@@ -13,16 +13,14 @@ import java.util.concurrent.TimeUnit;
 
 public class AITestGenerator {
 
-    // Lấy API Key từ biến môi trường của hệ thống
-    // Nếu không tìm thấy, sẽ dùng chuỗi rỗng để báo lỗi
-    private static final String API_KEY = System.getenv("GEMINI_API_KEY") != null
-            ? System.getenv("GEMINI_API_KEY")
-            : "";
+    private static final String DEFAULT_API_KEY = "AIzaSyBBbdVqLMmBaAvjX8SznA9QoaT_5ATK31o";
+    private final String apiKey;
     private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
     private final String outputDir;
 
-    public AITestGenerator(String outputDir) {
+    public AITestGenerator(String outputDir, String apiKey) {
         this.outputDir = outputDir;
+        this.apiKey = (apiKey != null && !apiKey.isBlank()) ? apiKey.trim() : DEFAULT_API_KEY;
         try {
             Files.createDirectories(Paths.get(outputDir));
         } catch (Exception e) {
@@ -46,6 +44,11 @@ public class AITestGenerator {
                     "3. Use ONLY standard @Test methods for each test case.\n" +
                     "4. Output ONLY raw Java code. No markdown.\n\n" +
                     "Source code:\n" + sourceCode;
+
+            if (apiKey.isEmpty()) {
+                System.err.println("[AI] API key chưa được cung cấp. Vui lòng nhập GEMINI_API_KEY hoặc điền API key trong GUI.");
+                return;
+            }
 
             // 2. GỌI API
             String generatedCode = callGeminiAPI(prompt);
@@ -103,7 +106,7 @@ public class AITestGenerator {
         Request request = new Request.Builder()
                 .url(API_URL)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("X-goog-api-key", API_KEY)
+                .addHeader("X-goog-api-key", apiKey)
                 .post(body)
                 .build();
 

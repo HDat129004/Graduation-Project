@@ -52,7 +52,26 @@ mvn exec:java -Dexec.mainClass="com.doantn.app.App" \
   -Dexec.args="src/main/java/com/doantn/example/Calculator.java"
 ```
 
-## 📚 Documentation
+## �️ Graphical User Interface (GUI)
+
+DoAnTN now includes a user-friendly GUI for easier interaction.
+
+**To run the GUI:**
+```bash
+# Build the project first
+mvn clean package
+
+# Run with GUI
+java -jar target/doantn-0.1.0-SNAPSHOT.jar --gui
+```
+
+The GUI provides:
+- Browse buttons for selecting source files/directories
+- Input fields for source path and output directory
+- Real-time output display
+- One-click test generation
+
+## �📚 Documentation
 
 - **[QUICK_START.md](QUICK_START.md)** - Quick start (2 minutes)
 - **[TEST_GENERATION_GUIDE.md](TEST_GENERATION_GUIDE.md)** - Complete guide
