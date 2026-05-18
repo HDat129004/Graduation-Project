@@ -11,6 +11,7 @@ public class MethodModel {
     private String methodName;
     private String returnType;
     private List<ParameterModel> parameters;
+    private List<com.doantn.model.BranchCondition> branchConditions;
     private int lineNumber;
     private boolean isPublic;
     private boolean isStatic;
@@ -19,6 +20,7 @@ public class MethodModel {
         this.methodName = methodName;
         this.returnType = returnType;
         this.parameters = new ArrayList<>();
+        this.branchConditions = new ArrayList<>();
         this.isPublic = false;
         this.isStatic = false;
         this.lineNumber = -1;
@@ -74,6 +76,18 @@ public class MethodModel {
 
     public void setStatic(boolean isStatic) {
         this.isStatic = isStatic;
+    }
+
+    public List<com.doantn.model.BranchCondition> getBranchConditions() {
+        return branchConditions;
+    }
+
+    public void setBranchConditions(List<com.doantn.model.BranchCondition> branchConditions) {
+        this.branchConditions = branchConditions;
+    }
+
+    public void addBranchCondition(com.doantn.model.BranchCondition bc) {
+        this.branchConditions.add(bc);
     }
 
     @Override

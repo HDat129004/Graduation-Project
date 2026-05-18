@@ -1,6 +1,9 @@
 package com.doantn.app;
 
+import com.doantn.analyzer.AnalyzerService;
 import com.doantn.generator.TestGenerator;
+import com.doantn.model.ClassModel;
+import com.doantn.model.MethodModel;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -12,6 +15,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,9 +42,17 @@ public class MainGUI extends JFrame {
     private JRadioButton radBoth;
     private JButton btnGenerate;
     private JTextArea txtLog;
+    private JTextArea txtPreviewAST; // Ô xem trước mã kiểm thử sinh bằng AST
+    private JTextArea txtPreviewAI;  // Ô xem trước mã kiểm thử sinh bằng AI Gemini
     private JProgressBar progressBar;
-    private JComboBox<String> cbxTests;
+    private JComboBox<TestFileItem> cbxTests;
     private JLabel lblStatus;
+
+    // Combo chọn Class và Method (minh chứng parser AST)
+    private JComboBox<String> cbClass;
+    private JComboBox<String> cbMethod;
+    private ClassModel analyzedModel;  // Kết quả phân tích từ AnalyzerService
+    private final AnalyzerService analyzerService = new AnalyzerService();
 
     public MainGUI() {
         setTitle("DoAnTN - Hệ Thống Tự Động Sinh Unit Test (Phiên bản Windows)");
@@ -103,7 +115,32 @@ public class MainGUI extends JFrame {
         pnlFile.add(fileInputWrapper);
         pnlFile.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
 
-        // 2. Khối Cấu hình Phương pháp
+        // 2. Khối Phân tích AST - Chọn Class & Method
+        JPanel pnlAnalysis = createWindowsCard("KẺT QUẢ PHÂN TÍCH AST");
+
+        JLabel lblClass = new JLabel("Class (JavaParser trích xuất):");
+        lblClass.setFont(FONT_NORMAL);
+        cbClass = new JComboBox<>();
+        cbClass.setFont(FONT_NORMAL);
+        cbClass.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+        cbClass.addActionListener(e -> onClassSelected());
+
+        JLabel lblMethod = new JLabel("Method:");
+        lblMethod.setFont(FONT_NORMAL);
+        cbMethod = new JComboBox<>();
+        cbMethod.setFont(FONT_NORMAL);
+        cbMethod.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+
+        pnlAnalysis.add(lblClass);
+        pnlAnalysis.add(Box.createVerticalStrut(4));
+        pnlAnalysis.add(cbClass);
+        pnlAnalysis.add(Box.createVerticalStrut(10));
+        pnlAnalysis.add(lblMethod);
+        pnlAnalysis.add(Box.createVerticalStrut(4));
+        pnlAnalysis.add(cbMethod);
+        pnlAnalysis.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
+
+        // 3. Khối Cấu hình Phương pháp
         JPanel pnlMethod = createWindowsCard("PHƯƠNG PHÁP SINH TEST");
         radAST = new JRadioButton("Thuật toán AST (Nhanh, Ngoại tuyến)");
         radAI = new JRadioButton("Trí tuệ nhân tạo Gemini (Trực tuyến)");
@@ -131,6 +168,8 @@ public class MainGUI extends JFrame {
         pnlMethod.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
 
         leftPanel.add(pnlFile);
+        leftPanel.add(Box.createVerticalStrut(15));
+        leftPanel.add(pnlAnalysis);
         leftPanel.add(Box.createVerticalStrut(15));
         leftPanel.add(pnlMethod);
         leftPanel.add(Box.createVerticalGlue());
@@ -171,6 +210,7 @@ public class MainGUI extends JFrame {
 
         cbxTests = new JComboBox<>();
         cbxTests.setFont(FONT_NORMAL);
+        cbxTests.addActionListener(e -> loadPreviewCode());
 
         JButton btnRunTest = new JButton("Chạy Test đã chọn");
         btnRunTest.setFont(FONT_NORMAL);
@@ -191,10 +231,9 @@ public class MainGUI extends JFrame {
         topActionPanel.add(pnlAction, BorderLayout.NORTH);
         topActionPanel.add(pnlTestExec, BorderLayout.CENTER);
 
-        // Log Panel
-        JPanel pnlLog = createWindowsCard("NHẬT KÝ THỰC THI & KẾT QUẢ");
+        // Khung 1: Nhật ký thực thi (Log)
+        JPanel pnlLog = createWindowsCard("NHẬT KÝ THỰC THI & KẾT QUẢ MAVEN");
         pnlLog.setLayout(new BorderLayout());
-
         txtLog = new JTextArea();
         txtLog.setFont(FONT_CODE);
         txtLog.setBackground(COLOR_LOG_BG);
@@ -203,23 +242,49 @@ public class MainGUI extends JFrame {
         txtLog.setEditable(false);
         txtLog.setMargin(new Insets(10, 10, 10, 10));
 
-        JScrollPane scrollPane = new JScrollPane(txtLog);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
-        pnlLog.add(scrollPane, BorderLayout.CENTER);
+        JScrollPane scrollLog = new JScrollPane(txtLog);
+        scrollLog.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
+        pnlLog.add(scrollLog, BorderLayout.CENTER);
 
-        // Extra Buttons Panel
-        JPanel pnlExtra = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        pnlExtra.setBackground(COLOR_CARD_BG);
+        // Khung 2: Xem trước mã kiểm thử AST
+        JPanel pnlPreviewAST = createWindowsCard("XEM TRƯỚC MÃ KIỂM THỬ (AST)");
+        pnlPreviewAST.setLayout(new BorderLayout());
+        txtPreviewAST = new JTextArea();
+        txtPreviewAST.setFont(FONT_CODE);
+        txtPreviewAST.setBackground(new Color(30, 30, 30)); // Nền đen IDE (VS Code #1e1e1e)
+        txtPreviewAST.setForeground(new Color(212, 212, 212)); // Chữ xám sáng chuẩn mã nguồn
+        txtPreviewAST.setCaretColor(Color.WHITE);
+        txtPreviewAST.setEditable(false);
+        txtPreviewAST.setMargin(new Insets(10, 10, 10, 10));
 
-        JButton btnJacoco = new JButton("Xem báo cáo JaCoCo");
-        btnJacoco.setFont(FONT_NORMAL);
-        btnJacoco.addActionListener(e -> viewJacocoReport());
+        JScrollPane scrollPreviewAST = new JScrollPane(txtPreviewAST);
+        scrollPreviewAST.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        pnlPreviewAST.add(scrollPreviewAST, BorderLayout.CENTER);
 
-        pnlExtra.add(btnJacoco);
-        pnlLog.add(pnlExtra, BorderLayout.SOUTH);
+        // Khung 3: Xem trước mã kiểm thử AI Gemini
+        JPanel pnlPreviewAI = createWindowsCard("XEM TRƯỚC MÃ KIỂM THỬ (AI GEMINI)");
+        pnlPreviewAI.setLayout(new BorderLayout());
+        txtPreviewAI = new JTextArea();
+        txtPreviewAI.setFont(FONT_CODE);
+        txtPreviewAI.setBackground(new Color(30, 30, 30)); // Nền đen IDE (VS Code #1e1e1e)
+        txtPreviewAI.setForeground(new Color(212, 212, 212)); // Chữ xám sáng chuẩn mã nguồn
+        txtPreviewAI.setCaretColor(Color.WHITE);
+        txtPreviewAI.setEditable(false);
+        txtPreviewAI.setMargin(new Insets(10, 10, 10, 10));
+
+        JScrollPane scrollPreviewAI = new JScrollPane(txtPreviewAI);
+        scrollPreviewAI.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        pnlPreviewAI.add(scrollPreviewAI, BorderLayout.CENTER);
+
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(FONT_HEADER);
+
+        tabbedPane.addTab("Nhật ký thực thi & Kết quả", pnlLog);
+        tabbedPane.addTab("Xem trước Mã kiểm thử (AST)", pnlPreviewAST);
+        tabbedPane.addTab("Xem trước Mã kiểm thử (AI Gemini)", pnlPreviewAI);
 
         rightPanel.add(topActionPanel, BorderLayout.NORTH);
-        rightPanel.add(pnlLog, BorderLayout.CENTER);
+        rightPanel.add(tabbedPane, BorderLayout.CENTER);
 
         return rightPanel;
     }
@@ -261,15 +326,56 @@ public class MainGUI extends JFrame {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn tập tin nguồn Java");
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        fileChooser.setCurrentDirectory(new File("C:\\Users\\Admin\\Desktop\\Test Design\\Graduation-Project test\\DoAnTN\\src\\main\\java\\com\\doantn\\example"));
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            txtFile.setText(fileChooser.getSelectedFile().getAbsolutePath());
+            String path = fileChooser.getSelectedFile().getAbsolutePath();
+            txtFile.setText(path);
+            analyzeAndPopulate(path);
+        }
+    }
+
+    /** Gọi AnalyzerService để phân tích file và điền vào cbClass + cbMethod */
+    private void analyzeAndPopulate(String filePath) {
+        cbClass.removeAllItems();
+        cbMethod.removeAllItems();
+        analyzedModel = null;
+
+        new Thread(() -> {
+            ClassModel model = analyzerService.analyze(filePath);
+            SwingUtilities.invokeLater(() -> {
+                if (model == null) {
+                    cbClass.addItem("(Không phân tích được)");
+                    return;
+                }
+                analyzedModel = model;
+                cbClass.addItem(model.getClassName());
+                cbClass.setSelectedIndex(0);
+                populateMethods(model);
+            });
+        }).start();
+    }
+
+    /** Điền danh sách method vào cbMethod khi chọn class */
+    private void onClassSelected() {
+        cbMethod.removeAllItems();
+        if (analyzedModel == null) return;
+        populateMethods(analyzedModel);
+    }
+
+    private void populateMethods(ClassModel model) {
+        cbMethod.removeAllItems();
+        cbMethod.addItem("(Tất cả phương thức)");
+        for (MethodModel m : model.getMethods()) {
+            String params = m.getParameters().stream()
+                    .map(p -> p.getParamType() + " " + p.getParamName())
+                    .collect(java.util.stream.Collectors.joining(", "));
+            cbMethod.addItem(m.getMethodName() + "(" + params + ")");
         }
     }
 
     private void generateTests() {
         final String sourcePath = txtFile.getText().trim();
-        final String outputDir = "src/test/java";
+        final String outputDir = "C:\\Users\\Admin\\Desktop\\Test Design\\Graduation-Project test\\DoAnTN\\src\\test\\java";
         String envKey = System.getenv("GEMINI_API_KEY");
         final String apiKey = (envKey == null) ? "" : envKey;
 
@@ -298,6 +404,7 @@ public class MainGUI extends JFrame {
                     System.out.println("\n[THÀNH CÔNG] Hoàn tất quá trình sinh Unit Test!");
                     setUIState(true, "Hoàn tất");
                     populateTestComboBox();
+                    loadPreviewCode();
                 });
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> {
@@ -309,13 +416,13 @@ public class MainGUI extends JFrame {
     }
 
     private void runSelectedTest(ActionEvent e) {
-        String selectedTestPath = (String) cbxTests.getSelectedItem();
-        if (selectedTestPath == null || selectedTestPath.isEmpty()) {
+        TestFileItem selectedItem = (TestFileItem) cbxTests.getSelectedItem();
+        if (selectedItem == null) {
             JOptionPane.showMessageDialog(this, "Không có tập tin kiểm thử nào được chọn.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        File testFile = new File(selectedTestPath);
+        File testFile = selectedItem.getFile();
         File projectDir = findMavenProjectRoot(testFile);
         if (projectDir == null) {
             projectDir = findMavenProjectRoot(getApplicationDirectory());
@@ -326,16 +433,30 @@ public class MainGUI extends JFrame {
             return;
         }
 
-        String className = buildTestClassName(testFile, projectDir);
+        String baseClassName = buildTestClassName(testFile, projectDir);
+        String testParam = baseClassName;
+
+        // Nếu đang chọn chế độ Kết hợp (Both), ta gom cả 2 class AST và AI để chạy chung trong 1 lệnh Maven
+        if (radBoth.isSelected()) {
+            if (baseClassName.endsWith("AITest")) {
+                String astClassName = baseClassName.substring(0, baseClassName.length() - 6) + "ASTTest";
+                testParam = astClassName + "," + baseClassName;
+            } else if (baseClassName.endsWith("ASTTest")) {
+                String aiClassName = baseClassName.substring(0, baseClassName.length() - 7) + "AITest";
+                testParam = baseClassName + "," + aiClassName;
+            }
+        }
+
         final File projectDirFinal = projectDir;
+        final String finalTestParam = testParam;
 
         setUIState(false, "Đang chạy kiểm thử...");
-        System.out.println("\n[THÔNG TIN] Bắt đầu chạy kiểm thử cho lớp: " + className);
+        System.out.println("\n[THÔNG TIN] Bắt đầu chạy kiểm thử cho các lớp: " + finalTestParam);
 
         new Thread(() -> {
             try {
                 String mvnCommand = getMavenCommand();
-                ProcessBuilder pb = new ProcessBuilder(mvnCommand, "test", "-Dtest=" + className);
+                ProcessBuilder pb = new ProcessBuilder(mvnCommand, "test", "-Dtest=" + finalTestParam);
                 pb.directory(projectDirFinal);
                 pb.redirectErrorStream(true);
                 Process process = pb.start();
@@ -350,6 +471,11 @@ public class MainGUI extends JFrame {
                     if (exitCode == 0) {
                         System.out.println("[THÀNH CÔNG] Chạy kiểm thử hoàn tất.");
                         setUIState(true, "Chạy kiểm thử xong");
+                        // Tạo luồng trễ 1 giây để đảm bảo hệ điều hành và Maven xả toàn bộ file index.html xuống ổ cứng
+                        new Thread(() -> {
+                            try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+                            SwingUtilities.invokeLater(this::viewJacocoReport);
+                        }).start();
                     } else {
                         System.err.println("[LỖI] Kiểm thử thất bại. Exit code: " + exitCode);
                         setUIState(true, "Kiểm thử thất bại");
@@ -365,18 +491,26 @@ public class MainGUI extends JFrame {
     }
 
     private void viewJacocoReport() {
-        File jacocoReport = new File("target/site/jacoco/index.html");
+        File projectRoot = findMavenProjectRoot(getApplicationDirectory());
+        File jacocoReport = null;
+        if (projectRoot != null) {
+            jacocoReport = new File(projectRoot, "target/site/jacoco/index.html");
+        }
+        if (jacocoReport == null || !jacocoReport.exists()) {
+            jacocoReport = new File("C:\\Users\\Admin\\Desktop\\Test Design\\Graduation-Project test\\DoAnTN\\target\\site\\jacoco\\index.html");
+        }
+
         if (jacocoReport.exists() && Desktop.isDesktopSupported()) {
             try {
                 Desktop.getDesktop().browse(jacocoReport.toURI());
-                System.out.println("[THÔNG TIN] Đã mở báo cáo JaCoCo trong trình duyệt.");
+                System.out.println("[THÔNG TIN] Đã mở báo cáo JaCoCo trong trình duyệt: " + jacocoReport.getAbsolutePath());
             } catch (IOException e) {
                 System.err.println("[LỖI] Không thể mở báo cáo JaCoCo: " + e.getMessage());
                 JOptionPane.showMessageDialog(this, "Không thể mở báo cáo JaCoCo.\n" + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         } else {
             System.err.println("[CẢNH BÁO] Không tìm thấy báo cáo JaCoCo tại: " + jacocoReport.getAbsolutePath());
-            JOptionPane.showMessageDialog(this, "Không tìm thấy báo cáo JaCoCo.\nHãy chắc chắn rằng bạn đã chạy kiểm thử trước đó.", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Không tìm thấy báo cáo JaCoCo tại:\n" + jacocoReport.getAbsolutePath() + "\nHãy chắc chắn rằng bạn đã chạy kiểm thử trước đó.", "Thông báo", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -411,19 +545,66 @@ public class MainGUI extends JFrame {
         File projectRoot = findMavenProjectRoot(getApplicationDirectory());
         File testDir = null;
         if (projectRoot != null) {
-            testDir = new File(projectRoot, "src/test/java/com/doantn");
+            testDir = new File(projectRoot, "src/test/java/com/doantn/example");
         }
         if (testDir == null || !testDir.exists() || !testDir.isDirectory()) {
-            testDir = new File("src/test/java/com/doantn");
+            testDir = new File("C:\\Users\\Admin\\Desktop\\Test Design\\Graduation-Project test\\DoAnTN\\src\\test\\java\\com\\doantn\\example");
         }
 
         List<File> testFiles = findTestFiles(testDir);
         for (File file : testFiles) {
-            cbxTests.addItem(file.getPath());
+            cbxTests.addItem(new TestFileItem(file));
         }
 
         if (cbxTests.getItemCount() > 0) {
             cbxTests.setSelectedIndex(0);
+        }
+    }
+
+    private void loadPreviewCode() {
+        TestFileItem selectedItem = (TestFileItem) cbxTests.getSelectedItem();
+        if (selectedItem == null) {
+            txtPreviewAST.setText("// Không có mã kiểm thử nào được chọn để xem trước.");
+            txtPreviewAI.setText("// Không có mã kiểm thử nào được chọn để xem trước.");
+            return;
+        }
+        try {
+            File currentFile = selectedItem.getFile();
+            String pathStr = currentFile.getAbsolutePath();
+
+            // Phân biệt và nạp file tương ứng
+            if (pathStr.endsWith("AITest.java")) {
+                // Tệp hiện tại là AI Test
+                nạpNộiDungTệp(currentFile, txtPreviewAI);
+                File astFile = new File(pathStr.replace("AITest.java", "ASTTest.java"));
+                nạpNộiDungTệp(astFile, txtPreviewAST);
+            } else if (pathStr.endsWith("ASTTest.java")) {
+                // Tệp hiện tại là AST Test
+                nạpNộiDungTệp(currentFile, txtPreviewAST);
+                File aiFile = new File(pathStr.replace("ASTTest.java", "AITest.java"));
+                nạpNộiDungTệp(aiFile, txtPreviewAI);
+            } else {
+                // Trường hợp khác
+                nạpNộiDungTệp(currentFile, txtPreviewAST);
+                txtPreviewAI.setText("// Không xác định được tệp AI tương ứng.");
+            }
+        } catch (Exception e) {
+            txtPreviewAST.setText("// Lỗi xử lý: " + e.getMessage());
+            txtPreviewAI.setText("// Lỗi xử lý: " + e.getMessage());
+        }
+    }
+
+    private void nạpNộiDungTệp(File file, JTextArea textArea) {
+        if (file.exists()) {
+            try {
+                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+                textArea.setText(content);
+                textArea.setCaretPosition(0);
+            } catch (IOException e) {
+                textArea.setText("// Lỗi khi đọc tệp: " + e.getMessage());
+            }
+        } else {
+            textArea.setText("// Tệp kiểm thử chưa được sinh hoặc không tồn tại: \n// " + file.getAbsolutePath());
         }
     }
 
@@ -482,6 +663,23 @@ public class MainGUI extends JFrame {
                 textArea.append(s);
                 textArea.setCaretPosition(textArea.getDocument().getLength());
             });
+        }
+    }
+
+    /** Lớp bọc File để hiển thị tên ngắn gọn trên JComboBox nhưng vẫn giữ đường dẫn tuyệt đối bên dưới */
+    private static class TestFileItem {
+        private final File file;
+
+        public TestFileItem(File file) {
+            this.file = file;
+        }
+
+        public File getFile() {
+            return file;
+        }
+
+        @Override public String toString() {
+            return file.getName(); // Chỉ hiển thị tên file ngắn gọn (ví dụ: CalculatorTest.java)
         }
     }
 

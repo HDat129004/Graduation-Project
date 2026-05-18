@@ -106,6 +106,12 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
+                <configuration>
+                    <!-- Chỉ định JaCoCo CHỈ quét các class nghiệp vụ trong gói com.doantn.example (như Calculator) để đo lường độ phủ thực tế, loại bỏ các class hệ thống (GUI, Analyzer, Generator) -->
+                    <includes>
+                        <include>com/doantn/example/**</include>
+                    </includes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

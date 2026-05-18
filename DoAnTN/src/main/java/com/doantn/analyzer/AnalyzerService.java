@@ -96,6 +96,26 @@ public class AnalyzerService {
                             methodModel.addParameter(paramModel);
                         }
 
+                        // Extract branch conditions using ConditionCollector
+                        List<ConditionCollector.BranchCondition> conditions = new ArrayList<>();
+                        ConditionCollector collector = new ConditionCollector();
+                        collector.visit(method, conditions);
+                        for (ConditionCollector.BranchCondition bc : conditions) {
+                            if (bc.kind == ConditionCollector.BranchCondition.Kind.IF) {
+                                for (ConditionCollector.AtomicConstraint ac : bc.atomicConstraints) {
+                                    boolean isParam = methodModel.getParameters().stream()
+                                            .anyMatch(p -> p.getParamName().equals(ac.left));
+                                    if (isParam) {
+                                        com.doantn.model.BranchCondition modelBc = new com.doantn.model.BranchCondition(
+                                                ac.left, ac.op, ac.right
+                                        );
+                                        modelBc.setExceptionType(bc.exceptionType);
+                                        methodModel.addBranchCondition(modelBc);
+                                    }
+                                }
+                            }
+                        }
+
                         classModel.addMethod(methodModel);
                     }
                 }

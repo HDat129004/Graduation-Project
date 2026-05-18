@@ -27,6 +27,15 @@ public class ConditionCollector extends VoidVisitorAdapter<List<ConditionCollect
         String method = findEnclosingMethodName(n);
         BranchCondition bc = new BranchCondition(BranchCondition.Kind.IF, condition, line, method);
         bc.atomicConstraints.addAll(decomposeExpression(n.getCondition()));
+        List<ThrowStmt> throwStmts = n.getThenStmt().findAll(ThrowStmt.class);
+        if (!throwStmts.isEmpty()) {
+            ThrowStmt ts = throwStmts.get(0);
+            if (ts.getExpression().isObjectCreationExpr()) {
+                bc.exceptionType = ts.getExpression().asObjectCreationExpr().getType().asString();
+            } else {
+                bc.exceptionType = "Exception";
+            }
+        }
         collector.add(bc);
     }
 
@@ -136,6 +145,7 @@ public class ConditionCollector extends VoidVisitorAdapter<List<ConditionCollect
         public List<String> extra = new ArrayList<>();
         public int line;
         public String methodName;
+        public String exceptionType;
         public List<AtomicConstraint> atomicConstraints = new ArrayList<>();
 
         public BranchCondition(Kind kind, String conditionText, int line, String methodName) {
